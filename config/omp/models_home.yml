@@ -1,0 +1,32 @@
+# HOME configuration — Z.AI (Zhipu) GLM models.
+#
+# Use this on a machine that has internet access to Z.AI (e.g. the MacBook at home).
+# The local vLLM providers defined in models.yml are NOT reachable off the work network,
+# so this file swaps them for the cloud GLM models from the Z.AI Coding Plan.
+#
+# To activate on a given machine, point the tool's models.yml at this file, e.g.:
+#   ln -sfn "$(realpath $HOME/.agents/config/omp/models_home.yml)" "$HOME/.omp/agent/models.yml"
+# AND point config.yml at config_home.yml (the matching modelRoles), e.g.:
+#   ln -sfn "$(realpath $HOME/.agents/config/omp/config_home.yml)" "$HOME/.omp/agent/config.yml"
+providers:
+  # Z.AI / Zhipu — OpenAI Chat Completions Coding Plan endpoint.
+  # Requires the ZHIPU_API_KEY env var (set it in ~/.omp/agent/.env).
+  zhipuai:
+    baseUrl: https://api.z.ai/api/coding/paas/v4
+    api: openai-completions
+    apiKey: ZHIPU_API_KEY   # resolved from ~/.omp/agent/.env
+    models:
+      # Flagship reasoning model — text only, 1M context. Primary coding agent.
+      - id: glm-5.3
+        name: GLM-5.3 (Zhipu)
+        reasoning: true
+        input: [text]
+        contextWindow: 1000000
+        maxTokens: 131072
+      # Fast + multimodal model — low latency, vision support. Titles, summaries, vision.
+      - id: glm-5.3-flash
+        name: GLM-5.3-Flash (Zhipu)
+        reasoning: true
+        input: [text, image, video, pdf]
+        contextWindow: 1000000
+        maxTokens: 131072

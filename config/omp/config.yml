@@ -1,0 +1,39 @@
+providers:
+  webSearchOrder:
+    []
+modelRoles:
+  default: vllm/Tauira-Thinking-3.1-27B-NVFP4
+  task: vllm/Tauira-Thinking-3.1-27B-NVFP4:auto
+  tiny: vllm/Tauira-Thinking-3.1-27B-NVFP4
+  smol: vllm-gb10/qwen3.8-flash-next
+  slow: vllm/Tauira-Thinking-3.1-27B-NVFP4
+  vision: vllm-gb10/qwen3.8-flash-next
+  plan: github-copilot/claude-opus-5
+  commit: vllm/Tauira-Thinking-3.1-27B-NVFP4
+  advisor: github-copilot/gpt-5.6-luna
+  designer: github-copilot/gpt-5.6-sol
+symbolPreset: nerd
+theme:
+  dark: titanium
+  light: light
+setupVersion: 2
+hideThinkingBlock: true
+dev:
+  autoqaConsent: granted
+defaultThinkingLevel: auto
+composer:
+  shape: band
+steeringMode: all
+followUpMode: all
+memory:
+  backend: local
+autolearn:
+  enabled: true
+  autoContinue: true
+vault:
+  enabled: true
+task:
+  eager: always
+  enableEffort: true
+  maxConcurrency: 32
+  enableLsp: true

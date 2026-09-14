@@ -1,0 +1,46 @@
+# HOME configuration — companion to models_home.yml.
+#
+# This is a copy of config.yml with the modelRoles repointed at the Z.AI GLM models.
+# Symlink this to config.yml on a machine that uses models_home.yml:
+#   ln -sfn "$(realpath $HOME/.agents/config/omp/config_home.yml)" "$HOME/.omp/agent/config.yml"
+providers:
+  webSearchOrder:
+    []
+modelRoles:
+  # Main reasoning roles → flagship GLM-5.3 (text only, strong reasoning).
+  default: zhipuai/glm-5.3
+  task: zhipuai/glm-5.3:auto
+  slow: zhipuai/glm-5.3
+  plan: zhipuai/glm-5.3
+  advisor: zhipuai/glm-5.3
+  # Fast / lightweight / vision roles → GLM-5.3-Flash (multimodal, low latency).
+  tiny: zhipuai/glm-5.3-flash
+  smol: zhipuai/glm-5.3-flash
+  vision: zhipuai/glm-5.3-flash
+  commit: zhipuai/glm-5.3-flash
+  designer: zhipuai/glm-5.3-flash
+symbolPreset: nerd
+theme:
+  dark: titanium
+  light: light
+setupVersion: 2
+hideThinkingBlock: true
+dev:
+  autoqaConsent: granted
+defaultThinkingLevel: auto
+composer:
+  shape: band
+steeringMode: all
+followUpMode: all
+memory:
+  backend: local
+autolearn:
+  enabled: true
+  autoContinue: true
+vault:
+  enabled: true
+task:
+  eager: always
+  enableEffort: true
+  maxConcurrency: 32
+  enableLsp: true

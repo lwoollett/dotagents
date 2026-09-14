@@ -1,0 +1,65 @@
+{
+  "version": 3,
+  "skills": {
+    "adapt": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
+      "skillPath": ".agents/skills/adapt/SKILL.md",
+      "skillFolderHash": "",
+      "installedAt": "2026-04-20T00:58:30.293Z",
+      "updatedAt": "2026-04-20T00:58:30.293Z"
+    },
+    "animate": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
+      "skillPath": ".agents/skills/animate/SKILL.md",
+      "skillFolderHash": "",
+      "installedAt": "2026-04-20T00:59:00.299Z",
+      "updatedAt": "2026-04-20T00:59:00.299Z"
+    },
+    "audit": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
+      "skillPath": ".agents/skills/audit/SKILL.md",
+      "skillFolderHash": "",
+      "installedAt": "2026-04-20T00:59:30.305Z",
+      "updatedAt": "2026-04-20T00:59:30.305Z"
+    },
+    "bolder": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
+      "skillPath": ".agents/skills/bolder/SKILL.md",
+      "skillFolderHash": "",
+      "installedAt": "2026-04-20T01:00:00.311Z",
+      "updatedAt": "2026-04-20T01:00:00.311Z"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/pbakaus/impeccable.git",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "skillFolderHash": "0c186575780acff90578f7ee166651165d663bab718e8df5875f21d4fcffa708",
+      "installedAt": "2026-09-10T02:10:04.429Z",
+      "updatedAt": "2026-09-10T02:10:04.429Z"
+    }
+  },
+  "dismissed": {},
+  "lastSelectedAgents": [
+    "amp",
+    "antigravity",
+    "cline",
+    "codex",
+    "cursor",
+    "deepagents",
+    "firebender",
+    "gemini-cli",
+    "github-copilot",
+    "kimi-cli",
+    "opencode",
+    "warp"
+  ]
+}

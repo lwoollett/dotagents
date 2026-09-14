@@ -1,0 +1,63 @@
+# ~/.agents — keep secrets and runtime artifacts out of git.
+# Portable protocol files (mcp.json, skills/, agents/, .skill-lock.json)
+# stay tracked; the entries below are credentials, vendor runtime state, and temporaries.
+
+# --- secrets ---
+.env
+.env.*
+!.env.example
+*/.env
+*/.env.*
+config/*/.env
+config/*/.env.*
+# OpenCode vendor config with embedded credentials
+config/opencode/opencode.json
+# per-machine credential overrides for portable files, if ever introduced
+mcp.local.json
+models.local.json
+*.credentials.json
+auth.json
+# machine-specific LSP install choices (not portable)
+config/opencode/lsp-install-decisions.json
+
+# --- private runtime memory (see README; track deliberately if desired) ---
+memories/
+
+# --- databases / sqlite sidecars ---
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# --- logs / caches / sessions ---
+logs/
+log/
+cache/
+.cache/
+sessions/
+terminal-sessions/
+blobs/
+snapshots/
+snapshot/
+tmp/
+temp/
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# --- backups and pre-existing vendor copies ---
+*.bak
+*.bak.*
+*.bak.json
+*.orig
+*.rej
+*~.bak
+backup/
+backups/
+config-backups/
+
+# --- node/plugin artifacts (native tool dirs, not this repo's content) ---
+node_modules/
