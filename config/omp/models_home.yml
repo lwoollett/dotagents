@@ -27,6 +27,6 @@ providers:
       - id: glm-5.3-flash
         name: GLM-5.3-Flash (Zhipu)
         reasoning: true
-        input: [text, image, video, pdf]
+        input: [text, image]
         contextWindow: 1000000
         maxTokens: 131072
