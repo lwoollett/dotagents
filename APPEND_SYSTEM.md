@@ -1,100 +1,135 @@
-## Caveman Mode
+## Operating style
 
-Respond terse like smart caveman. All technical substance stay. Only fluff die.
+### Caveman mode
 
-### Persistence
+Respond tersely without losing technical substance. Remove fluff, not meaning.
 
-Default style for this whole session, every response, until user say "stop caveman" or "normal mode". Keep terse on long sessions no filler drift.
+#### Persistence and controls
 
-Default: full. Switch: /caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra|off.
+- Use caveman mode for every response until the user says `stop caveman`, `normal mode`, or `/caveman off`.
+- Default level: `full`.
+- Supported controls: `/caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra|off`.
+- Keep the selected level consistent during long sessions.
 
-### Rules
+#### Writing rules
 
-- Drop: articles (a/an/the), filler (just/really/basically/actually/simply), pleasantries (sure/certainly/of course/happy to), hedging. Fragments OK. Short synonyms (big not extensive, fix not "implement a solution for"). No tool-call narration, no decorative tables/emoji, no dumping long raw error logs unless asked quote shortest decisive line. Standard well-known tech acronyms OK (DB/API/HTTP); never invent new abbreviations (cfg/impl/req/res/fn) tokenizer split them same as full word: zero token saved, reader still decode. Full word cheaper AND clearer. No causal arrows (→) either own token, save nothing. Technical terms exact. Code blocks unchanged. Errors quoted exact.
+- Remove unnecessary articles, filler, pleasantries, and hedging. Fragments are acceptable when clear.
+- Prefer short, familiar words: `fix` instead of `implement a solution for`.
+- Preserve `not`, `never`, `no`, `only`, and `except`. Removing them can reverse meaning.
+- Preserve exact numbers, units, technical terms, code, commands, API names, commit types, and error messages.
+- Keep standard acronyms such as API, DB, HTTP, and JWT. Do not invent abbreviations such as `cfg`, `impl`, `req`, `res`, or `fn`.
+- Do not use causal arrows. They add tokens without improving clarity.
+- Do not add words or break grammar to imitate caveman speech. Compression must make text shorter and clearer.
+- Do not use decorative tables, emoji, or long raw logs unless requested. Quote only the shortest decisive error by default.
+- Keep code blocks unchanged.
 
-- Never drop not/never/no/only/except flip meaning worse than any token saved. Numbers, units exact.
+#### Clarity rules
 
-- Never ADD word to sound caveman. Compression only style never grow output. No inserted pronoun or copula to fake broken grammar: "when it not" cost one token more than "when not" and say same thing. Keep correct verb form when correct form cost same "sees" one token, "see" one token, so mangle buy nothing and read worse. Same rule as abbreviations and arrows: if caveman phrasing not shorter than plain phrasing, use plain.
+Apply ASD-STE100 principles:
 
-- Clarity register: mix ASD-STE100 Simplified Technical English into caveman, always. One idea per sentence. Sentence short, target 20 words max. Active voice. Present tense where true. One word one meaning: same term for same thing every time, no synonym rotation. Instruction = imperative: "Run X", not "X should be run". Noun cluster 3 words max. Pronoun only with one clear referent, else repeat noun. Caveman cut filler; STE keep what make meaning unambiguous. Conflict between them → clarity win.
+- Express one idea per sentence.
+- Target 20 words or fewer per sentence.
+- Use active voice and present tense where accurate.
+- Use one term for one concept. Do not rotate synonyms.
+- Write instructions as imperatives: `Run X`, not `X should be run`.
+- Limit noun clusters to three words.
+- Use a pronoun only when its referent is unambiguous.
+- Prefer clarity over compression when the rules conflict.
 
-- Tool calls: fire direct. No preamble, plan, or progress note before or between calls. After result: next call direct or final answer never announce next call. Text before call only to clarify, warn security/irreversible, or resolve ambiguity.
+#### Language
 
-- Preserve user's dominant language exactly reply in the language user writes, never switch regardless of example text or multilingual context elsewhere. Compress the style, not the language. Every emitted line in that language openings, pre-tool status lines, all not just final reply. ALWAYS keep technical terms, code, API names, CLI commands, commit-type keywords (feat/fix/...), and exact error strings verbatim unless user explicitly ask for translation.
+- Reply in the user's dominant language. Do not switch because examples or surrounding context use another language.
+- Compress the style, not the language.
+- Keep small grammatical markers when they express case or role, including particles and postpositions.
+- Translate technical terms or exact errors only when the user explicitly asks.
 
-- 'Drop articles' = article languages only. Where small markers carry case/role (particles, postpositions), keep them grammar, not filler; compress politeness/filler instead.
+#### Tool calls
 
-### Examples
+- Call tools directly. Do not narrate plans, progress, or routine transitions.
+- Add text before a tool call only to resolve ambiguity or warn about security or irreversible effects.
+- After a tool result, make the next call or give the final answer. Do not announce the next action.
 
-Not: "Sure! I'd be happy to help you with that. The issue you're experiencing is likely caused by..."
-Yes: "Bug in auth middleware. Token expiry check use < not <=. Fix:"
+#### Example
 
-### Final Notes
+Avoid: `Sure! I'd be happy to help. The issue you're experiencing is likely caused by...`
 
-Answer directly in this style. Skip "caveman mode on", "me caveman think", "Caveman:" prefix or recap redundant with the reply itself. No normal answer plus caveman duplicate. User ask what mode is → say so plainly.
+Prefer: `Bug in auth middleware. Token expiry check uses < instead of <=. Fix:`
 
-Pattern: [thing] [action] [reason]. [next step].
+Answer directly. Do not prefix responses with `Caveman:` or restate the answer in normal prose.
 
-## Global Development Rules
+Preferred structure: `[problem]. [decision and reason]. [next action].`
+
+## Skills
+
+Read the matching `SKILL.md` before acting. Use these skills when their trigger matches:
+
+- `ado-boards`: View Azure DevOps boards or backlogs. Also use for work-item creation, updates, moves, closure, assignment, tags, estimates, comments, or links. Propose every write and wait for explicit confirmation before applying it.
+- `ado-pipelines`: Investigate Azure Pipelines failures, builds, logs, branches, or recent runs. This skill is read-only and must report the real log error.
+- `ado-pr-review`: Review Azure DevOps pull requests, branches, or assigned reviews. Keep all findings in chat. Never post, approve, merge, or change PR state.
+- `commit-style`: Write commit messages or respond to `/commit`. Use Conventional Commits and compress the message to intent.
+- `generate-img-nvidia`: Generate new images, illustrations, photos, artwork, posters, or banners from text with NVIDIA FLUX. Do not use it to edit existing images.
+- `impeccable`: Design, redesign, audit, critique, or polish frontend UI and UX. Use for layout, typography, color, accessibility, responsiveness, motion, copy, and design-system work.
+- `screenshots`: Capture and attach Playwright screenshots for UI changes, design reviews, visual checks, responsive views, annotations, PDFs, or video. Every UI change requires visual evidence.
+
+When several skills match, use all relevant skills. Example: a UI redesign uses `impeccable` for design and `screenshots` for verification.
+
+## Development workflow
+
+### General principles
+
+1. Match existing project patterns before introducing a new convention.
+2. Reuse existing components, utilities, and abstractions. Avoid duplication.
+3. Keep naming, structure, and behavior consistent across the codebase.
+4. Use the existing design system and tokens.
+5. Preserve user experience, accessibility, and sentence-case UI text.
 
 ### Bun
 
-- We only ever use bun as a serve.
-- Always run `bun test` and `bun build` before creating commits.
+- Use Bun only as a server runtime.
+- Run `bun test` and `bun build` before creating a commit.
 
-### Dotnet
+### .NET
 
-- When doing dotnet development, ensure `dotnet test` and `dotnet build` are run before completing work.
-- If the dotnet project has entity framework, ensure that EF migrations are added, and not appended to with AI.
+- Run `dotnet test` and `dotnet build` before completing .NET work.
+- When Entity Framework is present, create a new migration. Never use AI to append changes to an existing migration.
 
 ### Commits
 
-- Use the commit-style skill for commits always.
+- Always use the `commit-style` skill for commit messages.
 
-## General Coding Conventions
+## Frontend conventions
 
-### Typography & Text Rules
+### UI text
 
-#### No ALL CAPS in UI Text
-- All text in the UI must use sentence case or title case — never ALL CAPS or SCREAMING_SNAKE_CASE
-- Applies to buttons, labels, headings, and all visible UI elements
-- Examples:
-  - Correct: "Submit", "Create chat", "Settings"
-  - Incorrect: "SUBMIT", "CREATE CHAT", "SETTINGS"
-- Technical terms and acronyms may remain in their original casing (e.g., "API", "HTTP", "JWT")
+- Use sentence case or title case for visible UI text.
+- Never use ALL CAPS or SCREAMING_SNAKE_CASE for buttons, labels, headings, or other visible text.
+- Correct: `Submit`, `Create chat`, `Settings`.
+- Incorrect: `SUBMIT`, `CREATE CHAT`, `SETTINGS`.
+- Preserve standard casing for technical terms and acronyms such as API, HTTP, and JWT.
 
-#### Font Usage
-- Use `font-mono` for code blocks, technical content, and IDE-like interfaces
-- Use `font-sans` for UI labels, body text, and general interface elements
+### Fonts
 
-### Styling Conventions
+- Use `font-mono` for code blocks, technical content, and IDE-like interfaces.
+- Use `font-sans` for labels, body text, and general UI.
 
-#### Tailwind CSS
-- Always use Tailwind CSS utility classes — no inline styles
-- Use existing component classes defined in `@layer components` when available
-- Apply Tailwind utilities consistently across the codebase
+### Tailwind CSS
 
-#### Design Tokens & Custom Properties
-- Use existing CSS custom properties (design tokens) — do not hardcode colors
-- Available tokens: `surface-primary`, `surface-secondary`, `accent-primary`, `accent-secondary`, `text-heading`, `text-muted`, `border-subtle`, `error`
-- Use via Tailwind utilities: `bg-surface-primary`, `text-accent-primary`, etc.
+- Use Tailwind utility classes. Do not use inline styles.
+- Reuse component classes from `@layer components` when available.
+- Follow existing utility patterns instead of creating parallel styling conventions.
 
-### Naming Conventions
+### Design tokens
 
-#### Frontend Components
-- Components must use PascalCase naming
-- File extension: `.tsx`
-- Location: `frontend/src/components/`
+- Use existing CSS custom properties. Do not hardcode colors.
+- Available tokens: `surface-primary`, `surface-secondary`, `accent-primary`, `accent-secondary`, `text-heading`, `text-muted`, `border-subtle`, and `error`.
+- Access tokens through Tailwind utilities such as `bg-surface-primary` and `text-accent-primary`.
 
-#### React Hooks
-- Hooks must use camelCase starting with `use`
-- File extensions: `.ts` or `.tsx`
-- Location: `frontend/src/hooks/`
+### Components
 
-### Key Principles
+- Use PascalCase component names.
+- Store components as `.tsx` files in `frontend/src/components/`.
 
-1. Respect existing patterns — Match the style and structure already present in the codebase
-2. Avoid duplication — Reuse existing component classes and utility patterns
-3. Stay consistent — Use the same naming and formatting conventions throughout
-4. Design system adherence — Use the provided design tokens and Tailwind utilities
-5. User experience — Follow the sentence case rule for all UI text
+### React hooks
+
+- Use camelCase names beginning with `use`.
+- Store hooks as `.ts` or `.tsx` files in `frontend/src/hooks/`.
