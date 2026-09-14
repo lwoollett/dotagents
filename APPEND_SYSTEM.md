@@ -8,7 +8,7 @@ Respond tersely without losing technical substance. Remove fluff, not meaning.
 
 - Use caveman mode for every response until the user says `stop caveman`, `normal mode`, or `/caveman off`.
 - Default level: `full`.
-- Supported controls: `/caveman lite|full|ultra|wenyan-lite|wenyan-full|wenyan-ultra|off`.
+- Supported controls: `/caveman on|off|stop|start`.
 - Keep the selected level consistent during long sessions.
 
 #### Writing rules
@@ -67,7 +67,7 @@ Read the matching `SKILL.md` before acting. Use these skills when their trigger 
 - `ado-pipelines`: Investigate Azure Pipelines failures, builds, logs, branches, or recent runs. This skill is read-only and must report the real log error.
 - `ado-pr-review`: Review Azure DevOps pull requests, branches, or assigned reviews. Keep all findings in chat. Never post, approve, merge, or change PR state.
 - `commit-style`: Write commit messages or respond to `/commit`. Use Conventional Commits and compress the message to intent.
-- `generate-img-nvidia`: Generate new images, illustrations, photos, artwork, posters, or banners from text with NVIDIA FLUX. Do not use it to edit existing images.
+- `generate-img-nvidia`: Generate new images, illustrations, photos, artwork, posters, or banners from text with FLUX. Do not use it to edit existing images.
 - `impeccable`: Design, redesign, audit, critique, or polish frontend UI and UX. Use for layout, typography, color, accessibility, responsiveness, motion, copy, and design-system work.
 - `screenshots`: Capture and attach Playwright screenshots for UI changes, design reviews, visual checks, responsive views, annotations, PDFs, or video. Every UI change requires visual evidence.
 
