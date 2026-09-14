@@ -48,6 +48,9 @@ temp/
 *.swo
 *~
 
+# --- macOS Finder metadata ---
+.DS_Store
+
 # --- backups and pre-existing vendor copies ---
 *.bak
 *.bak.*
