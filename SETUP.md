@@ -1,16 +1,17 @@
 # Setup & Bootstrap
 
-This document covers how to bootstrap the portable agent configuration on a new machine.
+How to get this directory working on a new machine. For what `~/.agents` actually is and
+why it's laid out this way, see [README.md](./README.md) — this page is just the mechanics.
 
-For an overview of what this directory is and how it is laid out, see [README.md](./README.md).
+The short version: clone the repo to `~/.agents`, then recreate the vendor symlinks
+described below. Every command is idempotent — `ln -sfn` replaces an existing link without
+complaining, and `mkdir -p` on a path that already exists does nothing — so it's safe to
+re-run anything here whenever you've lost track of what you've already done.
 
-Clone this repository to `~/.agents`, then recreate the vendor links described below.
-Every command is idempotent (`ln -sfn` replaces an existing link; `mkdir -p` is a no‑op
-if the path already exists), so it is safe to re‑run at any time.
+## Back up first
 
-## 0. Back up first
-
-Never overwrite a real (non‑symlink) vendor file blindly:
+`ln -sfn` will happily clobber a real (non-symlink) vendor file without so much as a
+warning, so take a snapshot of anything you're about to shadow before you start:
 
 ```bash
 ts=$(date +%Y%m%d-%H%M%S)
@@ -21,7 +22,10 @@ for p in "$HOME/.omp/agent" "$HOME/.config/opencode"; do
 done
 ```
 
-## 1. OMP
+## OMP
+
+OMP reads its configuration from `~/.omp/agent/`, so the real files live here and get
+linked into place:
 
 ```bash
 mkdir -p "$HOME/.agents/config/omp" "$HOME/.omp/agent"
@@ -30,11 +34,14 @@ ln -sfn "$HOME/.agents/config/omp/models.yml"  "$HOME/.omp/agent/models.yml"
 ln -sfn "$HOME/.agents/config/omp/.env"        "$HOME/.omp/agent/.env"
 ```
 
-If `~/.omp/agent/config.yml`, `models.yml`, or `.env` is still a real file from an older
-install, move its content into `~/.agents/config/omp/` first — `ln -sfn` will replace it
-without warning.
+One gotcha: if `config.yml`, `models.yml`, or `.env` is still a real file from an older
+install, `ln -sfn` will replace it silently — move its content into
+`~/.agents/config/omp/` first.
 
-## 2. OMP managed skills
+## OMP managed skills
+
+OMP looks for managed skills in `~/.omp/agent/managed-skills/`; the ones I actually use
+get linked in from the canonical `skills/` folder:
 
 ```bash
 mkdir -p "$HOME/.omp/agent/managed-skills"
@@ -45,20 +52,24 @@ for s in askj-web-dead-code-review gb10-askj-stack-start \
 done
 ```
 
-To adopt any other skill in `~/.agents/skills` into OMP, add its directory name to that list.
+To adopt any other skill from `~/.agents/skills` into OMP, just add its directory name to
+that list.
 
-## 3. OMP memories
+## OMP memories
 
-If `~/.omp/agent/memories` is a real directory on the new machine, move its content into
-`~/.agents/memories/` first (per ProtocolMemories, this is a move, not a copy — keep one
-copy), then link:
+If `~/.omp/agent/memories` already exists as a real directory on the new machine, move its
+content into `~/.agents/memories/` first — per ProtocolMemories this is a move, not a
+copy, because two live copies of your memories is a good way to end up editing the wrong
+one. Then link:
 
 ```bash
 mkdir -p "$HOME/.agents/memories"
 ln -sfn "$HOME/.agents/memories" "$HOME/.omp/agent/memories"
 ```
 
-## 4. OpenCode
+## OpenCode
+
+OpenCode, same story, different vendor directory (`~/.config/opencode/`):
 
 ```bash
 mkdir -p "$HOME/.agents/config/opencode" "$HOME/.config/opencode"
@@ -67,20 +78,16 @@ for f in opencode.json oh-my-openagent.json tui.json lsp-install-decisions.json;
 done
 ```
 
-`package.json` / `node_modules` under `~/.config/opencode` belong to OpenCode's plugin
-loader — install them there natively; they are not part of this repo.
+Any `package.json` / `node_modules` under `~/.config/opencode` belong to OpenCode's plugin
+loader, not this repo — install them there natively and leave them alone.
 
-## 5. MCP tool servers
+## MCP tool servers
 
-The MCP servers themselves are declared in the top‑level `mcp.json`. Almost all of
-them are invoked with `npx -y <package>`, so OMP / OpenCode download and run them on
-demand — you do **not** need a global install (`npm i -g`) or a separate setup script
-(this repo has no `agent-browser`‑style install step).
-
-Prerequisites for every server:
-
-- Node.js + npm on your `PATH` (the `npx` invocations require them).
-- Outbound network access on first run so `npx` can fetch the package.
+The MCP servers themselves are declared once in the top-level `mcp.json`, and almost all
+of them are invoked with `npx -y <package>`, so OMP and OpenCode download and run them on
+demand. No global install (`npm i -g`), no separate setup script, nothing to babysit —
+you just need Node.js + npm on your `PATH` and outbound network access the first time
+each server runs.
 
 | Server | Invocation | Transport | Required env var | Notes |
 | --- | --- | --- | --- | --- |
@@ -93,42 +100,47 @@ Prerequisites for every server:
 | `web-search-prime` | `https://api.z.ai/api/mcp/web_search_prime/mcp` | streamable-http | `Z_AI_API_KEY` | Remote; no local install. |
 | `zread` | `https://api.z.ai/api/mcp/zread/mcp` | streamable-http | `Z_AI_API_KEY` | Remote; no local install. |
 
-Set the `PERSONAL_ACCESS_TOKEN`, `Z_AI_API_KEY`, and `GITHUB_TOKEN` values in your shell
-profile (or in `config/omp/.env` for OMP). If a server fails to start, open a scratch
-OMP session and check the MCP logs — `npx` download failures usually surface there.
+Set `PERSONAL_ACCESS_TOKEN`, `Z_AI_API_KEY`, and `GITHUB_TOKEN` in your shell profile (or
+in `config/omp/.env` if it's OMP that needs them). If a server refuses to start, open a
+scratch OMP session and read the MCP logs — `npx` download failures always surface there.
 
-## 6. Verify
+## Verify
+
+Once the links are in place, check that every vendor path is a symlink pointing back into
+`~/.agents`:
 
 ```bash
-# every vendor path must print a symlink pointing into ~/.agents
 ls -l "$HOME/.omp/agent/config.yml" "$HOME/.omp/agent/models.yml" "$HOME/.omp/agent/.env" \
       "$HOME/.omp/agent/memories" \
       "$HOME/.omp/agent/managed-skills/"* \
       "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/oh-my-openagent.json" \
       "$HOME/.config/opencode/tui.json" "$HOME/.config/opencode/lsp-install-decisions.json"
+```
 
-# all links must resolve (prints OK only if nothing is broken)
+…and that nothing is dangling — this prints `OK` only if there are no broken links:
+
+```bash
 broken=$(find "$HOME/.agents" "$HOME/.omp/agent" "$HOME/.config/opencode" \
   -maxdepth 3 -xtype l 2>/dev/null); [ -z "$broken" ] && echo OK || printf '%s\n' "$broken"
 ```
 
-Then smoke-test both tools (e.g. `omp` starts and lists your models; `opencode` loads its
-config without errors).
+Finally, smoke-test both tools: `omp` should start and list your models, and `opencode`
+should load its config without complaining.
 
-## 7. Environment Variables
+## Environment Variables
 
-The portable config files (`mcp.json`, `models.yml`) and some skills reference
-secrets by environment-variable name rather than by value, so they stay
-committable. Set these in your shell environment. If you want OMP to expand the
-`${ENV_VAR}` references in `mcp.json` and `models.yml` at runtime, also add them
-to `config/omp/.env` (the file OMP reads). A template for the required variables
-lives in `.env.example` — copy it to `.env` and fill in real values:
+The portable config files (`mcp.json`, `models.yml`) and some skills reference secrets by
+environment-variable name rather than by value — that's what keeps them committable. Set
+the variables themselves in your shell environment, and if you want OMP to expand the
+`${ENV_VAR}` references in `mcp.json` and `models.yml` at runtime, also add them to
+`config/omp/.env` (the file OMP reads).
+
+There's a template for the required variables in `.env.example` — copy it to `.env` and
+fill in real values (`.env` is gitignored):
 
 ```bash
 cp .env.example .env   # then edit .env with your own credentials
 ```
-
-The `.env` file is gitignored.
 
 | Variable | Used by | Purpose |
 | --- | --- | --- |
@@ -138,8 +150,8 @@ The `.env` file is gitignored.
 | `NVIDIA_API_KEY` | `skills/nvidia-image-gen/` | NVIDIA API key for image generation (must start with `nvapi-`; get at https://build.nvidia.com) |
 | `NODE_USE_ENV_PROXY` | `mcp.json` → "ado" env | Optional; set to `1` to make the ado server honour proxy env vars |
 
-These values are required only for the tools/skills that consume them; the rest
-of the repo works without them.
+None of these are needed for the rest of the repo to work — only the tools and skills that
+consume them care.
 
 ## Secrets
 
