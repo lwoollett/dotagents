@@ -5,7 +5,7 @@ modelRoles:
   default: vllm/Tauira-Thinking-3.1-27B-NVFP4
   task: vllm/Tauira-Thinking-3.1-27B-NVFP4:auto
   tiny: vllm/Tauira-Thinking-3.1-27B-NVFP4
-  smol: vllm-gb10/qwen3.8-flash-next
+  smol: vllm/Tauira-Thinking-3.1-27B-NVFP4:auto
   slow: vllm/Tauira-Thinking-3.1-27B-NVFP4
   vision: vllm-gb10/qwen3.8-flash-next
   plan: github-copilot/claude-opus-5
