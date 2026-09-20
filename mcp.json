@@ -22,70 +22,21 @@
       "transport": "stdio"
     },
     "context7": {
-      "args": [
-        "-y",
-        "@upstash/context7-mcp@latest"
-      ],
+      "args": ["-y", "@upstash/context7-mcp@latest"],
       "command": "npx",
       "transport": "stdio"
     },
     "github": {
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
+      "args": ["-y", "@modelcontextprotocol/server-github"],
       "command": "npx",
       "transport": "stdio"
     },
     "playwright": {
-      "args": [
-        "-y",
-        "@playwright/mcp@latest"
-      ],
+      "args": ["-y", "@playwright/mcp@latest"],
       "command": "npx",
       "transport": "stdio"
-    },
-    "web-reader": {
-      "headers": {
-        "Authorization": "Bearer ${Z_AI_API_KEY}"
-      },
-      "transport": "streamable-http",
-      "url": "https://api.z.ai/api/mcp/web_reader/mcp"
-    },
-    "web-search-prime": {
-      "headers": {
-        "Authorization": "Bearer ${Z_AI_API_KEY}"
-      },
-      "transport": "streamable-http",
-      "url": "https://api.z.ai/api/mcp/web_search_prime/mcp"
-    },
-    "zai-mcp-server": {
-      "args": [
-        "-y",
-        "@z_ai/mcp-server"
-      ],
-      "command": "npx",
-      "environment": {
-        "Z_AI_API_KEY": "${Z_AI_API_KEY}",
-        "Z_AI_MODE": "ZAI"
-      },
-      "transport": "stdio"
-    },
-    "zread": {
-      "headers": {
-        "Authorization": "Bearer ${Z_AI_API_KEY}"
-      },
-      "transport": "streamable-http",
-      "url": "https://api.z.ai/api/mcp/zread/mcp"
     }
   },
-  "requiredEnvironment": [
-    "PERSONAL_ACCESS_TOKEN",
-    "Z_AI_API_KEY"
-  ],
-  "source": {
-    "mcp": "~/.agents/config/opencode/opencode.json (mcp)",
-    "notes": "OpenCode 'type: local' command arrays split into command + args (transport stdio); 'type: remote' URLs mapped to transport streamable-http with headers preserved. Environment keys and header names are preserved verbatim so vendor configs can be reconstructed."
-  },
+  "requiredEnvironment": ["PERSONAL_ACCESS_TOKEN"],
   "version": 1
 }
