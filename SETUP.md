@@ -40,20 +40,19 @@ install, `ln -sfn` will replace it silently — move its content into
 
 ## OMP managed skills
 
-OMP looks for managed skills in `~/.omp/agent/managed-skills/`; the ones I actually use
-get linked in from the canonical `skills/` folder:
+OMP looks for managed skills in `~/.omp/agent/managed-skills/`; every skill in the
+canonical `skills/` folder gets linked in:
 
 ```bash
 mkdir -p "$HOME/.omp/agent/managed-skills"
-for s in askj-web-dead-code-review gb10-askj-stack-start \
-         omp-add-openai-compatible-provider proxy-vs-network-triage spa-dead-code-scan \
-         vllm-launch-flag-vetting; do
-  ln -sfn "$HOME/.agents/skills/$s" "$HOME/.omp/agent/managed-skills/$s"
+for d in "$HOME/.agents/skills"/*/; do
+  s=$(basename "$d")
+  ln -sfn "$d" "$HOME/.omp/agent/managed-skills/$s"
 done
 ```
 
-To adopt any other skill from `~/.agents/skills` into OMP, just add its directory name to
-that list.
+New skills added to `~/.agents/skills` are adopted by re-running the loop; to leave a
+skill unlinked on a given machine, just delete its symlink.
 
 ## OMP memories
 
