@@ -8,7 +8,13 @@ My reason for switching from OpenCode to Oh-My-Pi is unknown even to me.
 
 My `~/.agents` attempts to mimic the [.agents Protocol](https://dotagentsprotocol.com/), but again, half the harnesses don't support it for some reason.
 
-Most notable is the [Skills Folder](./skills/). There's skills in there for Azure DevOps, commits, image generation using NVIDIA's generous free tier, and screenshots. Impeccable is also in there, but that's managed by git and not my framework.
+Most notable is the [Skills Folder](./skills/). It started as Azure DevOps, commits, image
+generation using NVIDIA's generous free tier, and screenshots; since then it's grown
+D&D module extraction, ZMK keyboard-firmware bring-up, Dungeondraft modding, and
+branch-review workflows. It's also OMP's live managed-skills directory now:
+`~/.omp/agent/managed-skills` symlinks here, so skills the harness mints are born in
+the repo and adopting one is just a git commit. Impeccable is also in there, but
+that's managed by git and not my framework.
 
 Harness configs live in config.
 
@@ -21,6 +27,7 @@ Harness configs live in config.
 ~/.agents/
 ├── mcp.json            # portable MCP tool servers (protocol format)
 ├── skills/             # canonical skills: skills/<name>/SKILL.md
+│                       #   (also OMP's managed-skills: ~/.omp/agent/managed-skills → here)
 ├── agents/             # canonical sub-agent profiles: agents/<id>/agent.md
 ├── memories/           # canonical memories (tracked as files; private — see .gitignore)
 ├── config/
