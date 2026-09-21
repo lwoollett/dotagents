@@ -38,6 +38,16 @@ One gotcha: if `config.yml`, `models.yml`, or `.env` is still a real file from a
 install, `ln -sfn` will replace it silently — move its content into
 `~/.agents/config/omp/` first.
 
+Home machines repoint at the `_home` variants instead — GLM model roles plus the Z.ai
+MCP servers:
+
+```bash
+ln -sfn "$HOME/.agents/config/omp/config_home.yml" "$HOME/.omp/agent/config.yml"
+ln -sfn "$HOME/.agents/config/omp/models_home.yml" "$HOME/.omp/agent/models.yml"   # if linked at all
+ln -sfn "$HOME/.agents/config/omp/mcp_home.json"    "$HOME/.omp/agent/mcp.json"
+```
+
+
 ## OMP managed skills
 
 `~/.omp/agent/managed-skills` is a single symlink to the canonical `skills/` folder, so
@@ -87,6 +97,12 @@ demand. No global install (`npm i -g`), no separate setup script, nothing to bab
 you just need Node.js + npm on your `PATH` and outbound network access the first time
 each server runs.
 
+There are two variants: the root `mcp.json` is the portable/work baseline (no Z.ai
+servers), while `config/omp/mcp_home.json` is the home variant with the full set
+(`zai-mcp-server`, `web-reader`, `web-search-prime`, `zread`). Home machines symlink the
+variant into `~/.omp/agent/mcp.json` (see the OMP section above); work machines link the
+root file or nothing at all. The table below covers the union of both variants.
+
 | Server | Invocation | Transport | Required env var | Notes |
 | --- | --- | --- | --- | --- |
 | `ado` | `npx -y @azure-devops/mcp` | stdio | `PERSONAL_ACCESS_TOKEN` | Also honours `NODE_USE_ENV_PROXY=1` if you are behind a proxy. |
@@ -111,6 +127,7 @@ Once the links are in place, check that every vendor path is a symlink pointing 
 ls -l "$HOME/.omp/agent/config.yml" "$HOME/.omp/agent/models.yml" "$HOME/.omp/agent/.env" \
       "$HOME/.omp/agent/memories" \
       "$HOME/.omp/agent/managed-skills" \
+      "$HOME/.omp/agent/mcp.json" \
       "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/oh-my-openagent.json" \
       "$HOME/.config/opencode/tui.json" "$HOME/.config/opencode/lsp-install-decisions.json"
 ```

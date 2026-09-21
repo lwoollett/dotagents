@@ -31,7 +31,7 @@ Harness configs live in config.
 ├── agents/             # canonical sub-agent profiles: agents/<id>/agent.md
 ├── memories/           # canonical memories (tracked as files; private — see .gitignore)
 ├── config/
-│   ├── omp/            # OMP-native config: config.yml, models.yml, .env
+│   ├── omp/            # OMP-native config: config.yml, models.yml, .env, mcp_home.json (home MCP variant)
 │   └── opencode/       # OpenCode-native config: opencode.json, oh-my-openagent.json, tui.json, …
 └── .skill-lock.json    # skill installer lockfile (tracked)
 ```
