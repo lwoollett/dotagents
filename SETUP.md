@@ -40,19 +40,18 @@ install, `ln -sfn` will replace it silently — move its content into
 
 ## OMP managed skills
 
-OMP looks for managed skills in `~/.omp/agent/managed-skills/`; every skill in the
-canonical `skills/` folder gets linked in:
+`~/.omp/agent/managed-skills` is a single symlink to the canonical `skills/` folder, so
+skills minted by OMP's learn/manage_skill tooling are born inside this repo — adoption
+is just `git add` + `git commit`. (Like memories, this is a move, not a copy: two live
+copies of a skill is how you end up editing the wrong one.)
 
 ```bash
-mkdir -p "$HOME/.omp/agent/managed-skills"
-for d in "$HOME/.agents/skills"/*/; do
-  s=$(basename "$d")
-  ln -sfn "$d" "$HOME/.omp/agent/managed-skills/$s"
-done
+mkdir -p "$HOME/.agents/skills" "$HOME/.omp/agent"
+ln -sfn "$HOME/.agents/skills" "$HOME/.omp/agent/managed-skills"
 ```
 
-New skills added to `~/.agents/skills` are adopted by re-running the loop; to leave a
-skill unlinked on a given machine, just delete its symlink.
+If `managed-skills` already exists as a real directory on a new machine, move its
+contents into `~/.agents/skills/` first, then link.
 
 ## OMP memories
 
@@ -111,7 +110,7 @@ Once the links are in place, check that every vendor path is a symlink pointing 
 ```bash
 ls -l "$HOME/.omp/agent/config.yml" "$HOME/.omp/agent/models.yml" "$HOME/.omp/agent/.env" \
       "$HOME/.omp/agent/memories" \
-      "$HOME/.omp/agent/managed-skills/"* \
+      "$HOME/.omp/agent/managed-skills" \
       "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/oh-my-openagent.json" \
       "$HOME/.config/opencode/tui.json" "$HOME/.config/opencode/lsp-install-decisions.json"
 ```
