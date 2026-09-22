@@ -1,0 +1,8 @@
+{
+  "name": "pi-autolearn",
+  "private": true,
+  "description": "omp Auto-Learn port for pi: learn + manage_skill tools, shared ~/.agents skills/memories, auto-capture nudge",
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}

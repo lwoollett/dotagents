@@ -1,0 +1,5 @@
+{
+  "enabled": true,
+  "autoContinue": true,
+  "minToolCalls": 5
+}
