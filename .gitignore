@@ -19,6 +19,11 @@ models.local.json
 auth.json
 # machine-specific LSP install choices (not portable)
 config/opencode/lsp-install-decisions.json
+# pi runtime state inside the vendored agent dir (config/pi = ~/.pi/agent)
+config/pi/bin/
+config/pi/models-store.json
+config/pi/mcp-cache.json
+config/pi/mcp-npx-cache.json
 
 # --- private runtime memory (see README; track deliberately if desired) ---
 memories/
