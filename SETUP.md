@@ -109,6 +109,14 @@ Gotcha: if `~/.pi/agent` still exists as a real directory, `ln -sfn` nests the l
 OMP: `config/pi/skills` points at the canonical `skills/` folder, so both harnesses
 discover the same SKILL.md set.
 
+MCP follows the omp home-variant pattern: pi-mcp-adapter reads the root `mcp.json`
+baseline *and* `~/.pi/agent/mcp.json` (its "Pi global override", merged last), so home
+machines link the full Z.ai set the same way OMP does:
+
+```bash
+ln -sfn "$HOME/.agents/config/omp/mcp_home.json" "$HOME/.pi/agent/mcp.json"
+```
+
 `pi install` drops vendor state under `config/pi/npm/` and `config/pi/git/` — each gets a
 pi-generated `.gitignore` (`*` + `!.gitignore`), so commit those two files and the
 node_modules / clones inside stay out of the repo. On a fresh machine, re-run
