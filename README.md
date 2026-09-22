@@ -32,6 +32,8 @@ Harness configs live in config.
 ├── memories/           # canonical memories (tracked as files; private — see .gitignore)
 ├── config/
 │   ├── omp/            # OMP-native config: config.yml, models.yml, .env, mcp_home.json (home MCP variant)
+│   ├── pi/             # Pi config dir, vendored whole (~/.pi/agent → here): settings.json, skills → ../skills
+│   ├── pi/extensions/  # locally-developed pi extensions (pi-autolearn: omp Auto-Learn port)
 │   ├── git/            # git identity: gitconfig ([user] email)
 │   └── opencode/       # OpenCode-native config: opencode.json, oh-my-openagent.json, tui.json, …
 └── .skill-lock.json    # skill installer lockfile (tracked)

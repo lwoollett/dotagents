@@ -17,7 +17,7 @@ warning, so take a snapshot of anything you're about to shadow before you start:
 ts=$(date +%Y%m%d-%H%M%S)
 backup=~/.config-backups/agents-consolidate-$ts
 mkdir -p "$backup"
-for p in "$HOME/.omp/agent" "$HOME/.config/opencode"; do
+for p in "$HOME/.omp/agent" "$HOME/.pi/agent" "$HOME/.config/opencode"; do
   [ -e "$p" ] && [ ! -L "$p" ] && cp -a "$p" "$backup/"
 done
 ```
@@ -89,6 +89,44 @@ done
 Any `package.json` / `node_modules` under `~/.config/opencode` belong to OpenCode's plugin
 loader, not this repo — install them there natively and leave them alone.
 
+## Pi
+
+Pi reads everything from its agent directory (`~/.pi/agent`, also settable via
+`PI_CODING_AGENT_DIR`), so the whole directory is vendored with a single link — no
+per-file split like OMP/OpenCode. `settings.json` (and anything `pi install` registers)
+is committable; `auth.json`, `sessions/`, `bin/`, and `models-store.json` are runtime
+state and gitignored (see `.gitignore`).
+
+```bash
+mkdir -p "$HOME/.agents/config/pi" "$HOME/.agents/skills" "$HOME/.pi"
+ln -sfn "$HOME/.agents/config/pi" "$HOME/.pi/agent"
+ln -sfn "$HOME/.agents/skills"     "$HOME/.agents/config/pi/skills"
+```
+
+Gotcha: if `~/.pi/agent` still exists as a real directory, `ln -sfn` nests the link
+*inside* it instead of replacing it — move the contents into `~/.agents/config/pi/` and
+`rmdir` it first (which is why it's in the backup loop above). Skills are shared with
+OMP: `config/pi/skills` points at the canonical `skills/` folder, so both harnesses
+discover the same SKILL.md set.
+
+`pi install` drops vendor state under `config/pi/npm/` and `config/pi/git/` — each gets a
+pi-generated `.gitignore` (`*` + `!.gitignore`), so commit those two files and the
+node_modules / clones inside stay out of the repo. On a fresh machine, re-run
+`pi install` for each `packages[]` entry in `settings.json` to repopulate them.
+
+### Locally-developed extensions
+
+`config/pi/extensions/<name>/` is pi's global extension dir (auto-discovered through the
+`~/.pi/agent` symlink — no settings.json entry needed). `pi-autolearn` lives there: a
+port of omp's Auto-Learn — `learn` + `manage_skill` tools writing the same omp formats
+into the shared `skills/` and `memories/` trees, plus an auto-capture turn (interactive
+sessions only) after runs with ≥5 tool calls. Its config is `config/pi/autolearn.json`
+(`enabled`, `autoContinue`, `minToolCalls`; env overrides `PI_AUTOLEARN_CONFIG`,
+`PI_AUTOLEARN_SKILLS_DIR`, `PI_AUTOLEARN_MEMORIES_DIR`). Regression test:
+`cd config/pi/extensions/pi-autolearn && bun run test.ts` (the `node_modules/` symlinks
+there are dev-only test plumbing — gitignored, not needed at runtime; pi injects the
+imports itself).
+
 ## MCP tool servers
 
 The MCP servers themselves are declared once in the top-level `mcp.json`, and almost all
@@ -128,6 +166,7 @@ ls -l "$HOME/.omp/agent/config.yml" "$HOME/.omp/agent/models.yml" "$HOME/.omp/ag
       "$HOME/.omp/agent/memories" \
       "$HOME/.omp/agent/managed-skills" \
       "$HOME/.omp/agent/mcp.json" \
+      "$HOME/.pi/agent" \
       "$HOME/.config/opencode/opencode.json" "$HOME/.config/opencode/oh-my-openagent.json" \
       "$HOME/.config/opencode/tui.json" "$HOME/.config/opencode/lsp-install-decisions.json"
 ```
@@ -135,12 +174,13 @@ ls -l "$HOME/.omp/agent/config.yml" "$HOME/.omp/agent/models.yml" "$HOME/.omp/ag
 …and that nothing is dangling — this prints `OK` only if there are no broken links:
 
 ```bash
-broken=$(find "$HOME/.agents" "$HOME/.omp/agent" "$HOME/.config/opencode" \
+broken=$(find "$HOME/.agents" "$HOME/.omp/agent" "$HOME/.pi" "$HOME/.config/opencode" \
   -maxdepth 3 -xtype l 2>/dev/null); [ -z "$broken" ] && echo OK || printf '%s\n' "$broken"
 ```
 
-Finally, smoke-test both tools: `omp` should start and list your models, and `opencode`
-should load its config without complaining.
+Finally, smoke-test the tools: `omp` should start and list your models, `opencode`
+should load its config without complaining, and `pi list` should report its extension
+list (empty is fine — it proves settings.json parsed through the symlink).
 
 ## Environment Variables
 
@@ -159,8 +199,9 @@ cp .env.example .env   # then edit .env with your own credentials
 
 | Variable | Used by | Purpose |
 | --- | --- | --- |
-| `PERSONAL_ACCESS_TOKEN` | `mcp.json` → "ado" server | Azure DevOps PAT for repo / work-item / PR access |
+| `PERSONAL_ACCESS_TOKEN` | `mcp.json` → "ado" server (omp via `config/omp/.env`; pi via shell env — `pi-mcp-adapter` reads `~/.agents/mcp.json` directly) | Azure DevOps PAT for repo / work-item / PR access |
 | `Z_AI_API_KEY` | `mcp.json` → zai-mcp-server, web-reader, web-search-prime, zread | Z.ai (Zhipu) API key for the web-search/reader MCP tools |
+| `ZAI_API_KEY` | pi → `zai` provider | Same Z.ai key; pi's env-var name omits the underscore. `~/.secrets` aliases it from `Z_AI_API_KEY` |
 | `MICROSOFT_FOUNDRY_API_KEY` | `models.yml` → microsoft-foundry provider | Azure AI Foundry key for hosted models |
 | `NVIDIA_API_KEY` | `skills/nvidia-image-gen/` | NVIDIA API key for image generation (must start with `nvapi-`; get at https://build.nvidia.com) |
 | `NODE_USE_ENV_PROXY` | `mcp.json` → "ado" env | Optional; set to `1` to make the ado server honour proxy env vars |
