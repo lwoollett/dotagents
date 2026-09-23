@@ -109,6 +109,14 @@ Gotcha: if `~/.pi/agent` still exists as a real directory, `ln -sfn` nests the l
 OMP: `config/pi/skills` points at the canonical `skills/` folder, so both harnesses
 discover the same SKILL.md set.
 
+Sub-agent profiles are shared the same way: `config/pi/settings.json` sets
+`subagents.agentScanDirs: ["~/.agents/agents"]`, so pi-subagents discovers
+agents dropped in the canonical `agents/` folder. Pi wants flat frontmatter files
+(`agents/visual.md`), not the protocol's `agents/<id>/agent.md` shape — only files
+pi can parse are picked up, and fixed dirs (`~/.pi/agent/agents/`, project
+`.pi/agents/`) still win name collisions over scan-root agents; builtins lose to
+both.
+
 MCP follows the omp home-variant pattern: pi-mcp-adapter reads the root `mcp.json`
 baseline *and* `~/.pi/agent/mcp.json` (its "Pi global override", merged last), so home
 machines link the full Z.ai set the same way OMP does:

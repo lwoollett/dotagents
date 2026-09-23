@@ -24,6 +24,7 @@ config/pi/bin/
 config/pi/models-store.json
 config/pi/mcp-cache.json
 config/pi/mcp-npx-cache.json
+config/pi/trust.json
 
 # --- private runtime memory (see README; track deliberately if desired) ---
 memories/

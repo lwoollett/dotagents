@@ -29,6 +29,9 @@ Harness configs live in config.
 ├── skills/             # canonical skills: skills/<name>/SKILL.md
 │                       #   (also OMP's managed-skills: ~/.omp/agent/managed-skills → here)
 ├── agents/             # canonical sub-agent profiles: agents/<id>/agent.md
+│                       #   (also live for pi: pi-subagents scans this folder via
+│                       #    subagents.agentScanDirs in config/pi/settings.json —
+│                       #    pi-format files like agents/visual.md)
 ├── memories/           # canonical memories (tracked as files; private — see .gitignore)
 ├── config/
 │   ├── omp/            # OMP-native config: config.yml, models.yml, .env, mcp_home.json (home MCP variant)

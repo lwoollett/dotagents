@@ -10,6 +10,13 @@
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:pi-lens",
     "npm:@narumitw/pi-btw",
-    "git:github.com/sting8k/pi-vcc"
-  ]
+    "git:github.com/sting8k/pi-vcc",
+    "npm:pi-subagent-monitor"
+  ],
+  "hideThinkingBlock": false,
+  "subagents": {
+    "agentScanDirs": [
+      "~/.agents/agents"
+    ]
+  }
 }
