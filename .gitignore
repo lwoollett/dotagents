@@ -25,9 +25,15 @@ config/pi/models-store.json
 config/pi/mcp-cache.json
 config/pi/mcp-npx-cache.json
 config/pi/trust.json
+config/pi/missions/
+config/pi/run-history.jsonl
+config/pi/web-search-cache/
 
 # --- private runtime memory (see README; track deliberately if desired) ---
 memories/
+
+# --- local-only skills (machine-specific, not portable) ---
+skills/pi-mcp-stdio-install/
 
 # --- databases / sqlite sidecars ---
 *.db
