@@ -29,6 +29,17 @@
       "command": "npx",
       "transport": "stdio"
     },
+    "fusion360": {
+      "args": [
+        "--with",
+        "mcp==1.26.0",
+        "fusion360-mcp-server",
+        "--mode",
+        "socket"
+      ],
+      "command": "uvx",
+      "transport": "stdio"
+    },
     "github": {
       "args": [
         "-y",
@@ -77,6 +88,17 @@
       },
       "transport": "streamable-http",
       "url": "https://api.z.ai/api/mcp/zread/mcp"
+    },
+    "godot": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@coding-solo/godot-mcp"
+      ],
+      "environment": {
+        "GODOT_PATH": "/Applications/Godot.app/Contents/MacOS/Godot"
+      },
+      "transport": "stdio"
     }
   },
   "requiredEnvironment": [
