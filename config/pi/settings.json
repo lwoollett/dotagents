@@ -11,9 +11,10 @@
     "npm:pi-lens",
     "npm:@narumitw/pi-btw",
     "git:github.com/sting8k/pi-vcc",
-    "npm:pi-subagent-monitor"
+    "npm:pi-subagent-monitor",
+    "npm:pi-atelier"
   ],
-  "hideThinkingBlock": false,
+  "hideThinkingBlock": true,
   "subagents": {
     "agentScanDirs": [
       "~/.agents/agents"
