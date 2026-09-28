@@ -1,0 +1,13 @@
+{
+  "sidebarPanelLayout": [
+    { "id": "agent", "visible": true },
+    { "id": "activity", "visible": true },
+    { "id": "alerts", "visible": true },
+    { "id": "todos", "visible": true },
+    { "id": "context", "visible": true },
+    { "id": "workspace", "visible": true },
+    { "id": "usage", "visible": true },
+    { "id": "tools", "visible": true },
+    { "id": "subagents:fleet", "visible": true }
+  ]
+}

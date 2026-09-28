@@ -1,0 +1,8 @@
+{
+  "name": "atelier-subagents",
+  "private": true,
+  "description": "Bridges pi-subagents fleet status (RPC v1) into a Pi Atelier sidebar panel: live agent list, elapsed time, tokens, goals.",
+  "pi": {
+    "extensions": ["./index.ts"]
+  }
+}
