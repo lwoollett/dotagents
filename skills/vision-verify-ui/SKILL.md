@@ -1,12 +1,12 @@
 ---
 name: "vision-verify-ui"
-description: "Mandatory verification loop for any visual/UI change — AutoShot framebuffer capture (with env-driven auto-actions for stateful states), delegate to a vision-capable subagent (zai/glm-5.3-flash), iterate until CONFIRMED; time-lapse bursts for motion/physics bugs; composite-scoring for tile mating; strict delegation sizing"
+description: "Mandatory verification loop for any visual/UI/scene/rendering change — AutoShot framebuffer capture for games, API viewport renders for desktop CAD, delegate to a vision-capable subagent (zai/glm-5.3-flash), iterate until CONFIRMED; time-lapse bursts for motion/physics bugs; strict delegation sizing"
 ---
 
 # Vision-verify UI changes
 
 ## Rule
-The main session model may not support image input. Never declare a visual/UI/scene/rendering change done without verification through a vision-capable subagent. This is a standing user rule. This covers BEHAVIOR (physics, motion, collisions), not just static layout.
+The main session model may not support image input. Never declare a visual/UI/scene/rendering change done without verification through a vision-capable subagent. This is a standing user rule. This covers BEHAVIOR (physics, motion, collisions), not just static layout — and applies to ANY rendered artifact: game frames, app UI, CAD viewport renders, generated images.
 
 ## Procedure (scanrace / Godot / macOS)
 
@@ -18,31 +18,30 @@ The main session model may not support image input. Never declare a visual/UI/sc
    - WAIT past countdowns/interactions (~7s); different screens = separate runs.
    - macOS `screencapture` from the agent's shell FAILS (no Screen Recording permission). Don't use it.
    - Wrap batch capture runs in a per-run watchdog (background + kill after N s): windowed runs occasionally hang environmentally. Retry flaky timestamps once or twice.
-   - **Capturing post-interaction states (drop cards, dialogs, mid-animation):** don't script input — add env-var-driven auto-actions to the scene (e.g. `SKR_AUTOSCAN=<code>` makes the scanner auto-scan ~1.2s after ready). Cheap, deterministic, CI-able.
+   - **Capturing post-interaction states (drop cards, dialogs, mid-animation):** don't script input — add env-var-driven auto-actions to the scene. Cheap, deterministic, CI-able.
    - Delivering a shot to the user: copy to `~/Desktop/` with a descriptive name.
+1a. **Desktop-CAD captures (Fusion 360, proven):** don't screenshot the app — render from the API: `viewport.saveAsImageFile(path, w, h)` after setting the camera programmatically (`vp.camera` eye/target/upVector + `vp.fit()`). Verify the RENDER'S FRAMING with a vision delegation before judging geometry — mis-framed renders produce confident false verdicts (a "front wall" shot that was actually isometric read as "no voronoi pattern" for 3 iterations).
 2. **Delegate the read** — keep it SMALL:
    ```
-   subagent({agent: "delegate", model: "zai/glm-5.3-flash", async: false, task: "Read /tmp/x.png ... <checklist>"})
+   subagent({agent: "delegate" or a vision agent, model: "zai/glm-5.3-flash", async: false, task: "Read /tmp/x.png ... <checklist>"})
    ```
-   **DELEGATION SIZING (hard-won, multiple timeouts):** glm-5.3-flash handles ONE frame with a 5-6 point checklist in seconds. Multi-frame deep-analysis tasks and big classification batches time out at the 30-minute cap mid-report. Structure time-lapses as compact per-frame table requests; on timeout, MINE THE TRANSCRIPT (`..._transcript.jsonl` in subagent-artifacts — assistant text blocks often contain the nearly-complete report). Connection errors leave EMPTY transcripts — nothing to mine, just retry as a single-frame task.
-   Task must include: expected contents (exact strings, colors, positions), a wrongness checklist, and demands for measured pixel values on geometry checks.
-3. **Act on findings, re-run the loop until CONFIRMED/CLEAN.** Ask for measurements — glm-5.3-flash measures pixel-exactly when given target colors, including full 2D sweeps. Size tuning converges in one iteration via measured ratios.
+   **DELEGATION SIZING (hard-won, multiple timeouts):** glm-5.3-flash handles ONE frame with a 5-6 point checklist in seconds. Multi-frame deep-analysis tasks and big classification batches time out. Structure time-lapses as compact per-frame table requests; on timeout, MINE THE TRANSCRIPT (`..._transcript.jsonl` in subagent-artifacts). Connection errors leave EMPTY transcripts — retry as single-frame.
+   **ONE subagent call per turn** — parallel calls are rejected ("a subagent call is already in progress"); fan out across sequential turns.
+   Task must include: expected contents (exact strings, colors, positions), a wrongness checklist, and demands for measured pixel values on geometry checks. A purpose-built `visual` user agent (read tool, glm-5.3-flash) beats generic delegate.
+3. **Act on findings, re-run the loop until CONFIRMED/CLEAN.** Ask for measurements — glm-5.3-flash measures pixel-exactly when given target colors. Vision feedback often names the ROOT CAUSE: "openings are uniform rectangles" on CAD walls revealed a vertical-prism-cut limitation and collinear-seed bisectors — treat descriptions as diagnostics, not just pass/fail. Also distinguish STRUCTURE defects (fix and re-run) from taste parameters (density/size) — the latter go to the user with renders copied to ~/Desktop.
 
 ## Time-lapse verification (motion/physics/collision bugs)
-- Run the SAME scene at increasing `SKR_WAIT` spanning the event (countdown + distance/speed arithmetic).
+- Run the SAME scene at increasing `SKR_WAIT` spanning the event.
 - Per frame ask: HUD numeric readouts (speed!), subject position, orientation, surface, overlap state — then interpret ACROSS frames. Prove motion by world landmarks, not screen coords (camera-follow artifact).
-- Cover both autopilot and idle-player paths — perfect autopilots never trigger crash/free-node paths.
+- Cover both autopilot and idle-player paths.
 
 ## Classifying assets (tiles/sprites) you cannot see
 - **Programmatic analysis FIRST** (PIL): sizes, alpha, dominant colors, edge-band extents, arm centerlines.
-- **Composite-scoring for tile mating**: compose candidate + neighbors in PIL, score junction continuity (span comparison at the seam), windows clamped per-tile or perpendicular tiles contaminate spans. Sweep rotations. Deterministic — no vision needed.
+- **Composite-scoring for tile mating**: compose candidate + neighbors in PIL, score junction continuity at the seam; windows clamped per-tile. Sweep rotations. Deterministic.
 - Small vision delegations for semantics only (mini contact sheets ~9 tiles). Never batch-classify big sets.
-- Watch for inverted color models: palette-PNG transparency reads as black; "empty-looking" tiles may be plain surface pads, not grass.
+- Watch for inverted color models: palette-PNG transparency reads as black.
 
 ## Gotchas
 - User-shared screenshots from macOS temp dirs vanish fast — copy immediately; Desktop is stable.
-- Known-fixed layout facts (don't regress): `PRESET_BOTTOM_WIDE` needs `grow_vertical = BEGIN`; lifting off an edge = move that edge's offset (`offset_bottom`), not the opposite one; prefer `CenterContainer` + `set_anchors_and_offsets_preset`; `draw_set_transform` + `draw_rect` rects extend toward local +x/+y — center with negative-half origins.
-- Verify sprite-art facing with a one-image delegation before writing rotation math (Kenney pack: cars and arrows face north).
-- Godot runtime: nodes freed via `queue_free()` remain in Arrays until filtered — guard every access with `is_instance_valid(node)` in iteration loops AND list filters.
-- Band-positioning math: decide explicitly whether `position` means the band's top or bottom edge; sign inversions draw grass over the road (bit us twice).
-- GDScript Variant-inference is a HARD ERROR in this project: never `var x := dict.get(k, d)` or `var x := {…}.get(…)` or method chains on untyped refs — always annotate (`var x: String = …`). Also never write `def func` (Python muscle memory) in GDScript stubs.
+- Verify sprite-art facing with a one-image delegation before writing rotation math.
+- CAD camera APIs: `viewport.camera` often returns a singleton — setting `viewOrientation` on it may not override stale eye/target; set eye/target/upVector explicitly and far away (≈500+mm) for quasi-orthographic elevations.
