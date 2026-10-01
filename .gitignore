@@ -24,6 +24,10 @@ config/pi/bin/
 config/pi/models-store.json
 config/pi/mcp-cache.json
 config/pi/mcp-npx-cache.json
+# pi native-MCP OAuth tokens (never commit)
+config/pi/mcp-auth.json
+# pi-subagents runtime state
+config/pi/pi-subagents/
 config/pi/trust.json
 config/pi/missions/
 config/pi/run-history.jsonl

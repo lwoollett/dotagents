@@ -1,0 +1,88 @@
+{
+  "mcpServers": {
+    "ado": {
+      "description": "Azure DevOps for JadeSoftware/AskJ — boards, work items, repos, PRs, and pipeline runs",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "JadeSoftware",
+        "-a",
+        "pat",
+        "-d",
+        "core",
+        "repositories",
+        "work-items",
+        "pipelines"
+      ],
+      "env": {
+        "NODE_USE_ENV_PROXY": "1",
+        "PERSONAL_ACCESS_TOKEN": "${PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+    "context7": {
+      "description": "Up-to-date documentation for libraries and frameworks",
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "fusion360": {
+      "description": "Parametric CAD in Fusion 360 via the local socket add-in (execute_code and friends)",
+      "command": "uvx",
+      "args": [
+        "--with",
+        "mcp==1.26.0",
+        "fusion360-mcp-server",
+        "--mode",
+        "socket"
+      ]
+    },
+    "github": {
+      "description": "GitHub repositories, issues, pull requests, and code search",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"]
+    },
+    "godot": {
+      "description": "Drive the Godot editor — run projects, inspect the scene tree",
+      "command": "npx",
+      "args": ["-y", "@coding-solo/godot-mcp"],
+      "env": {
+        "GODOT_PATH": "/Applications/Godot.app/Contents/MacOS/Godot"
+      }
+    },
+    "playwright": {
+      "description": "Browser automation, DOM inspection, and screenshots via Playwright",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "web-reader": {
+      "description": "Z.ai web reader — fetch a URL as readable content",
+      "url": "https://api.z.ai/api/mcp/web_reader/mcp",
+      "headers": {
+        "Authorization": "Bearer ${Z_AI_API_KEY}"
+      }
+    },
+    "web-search-prime": {
+      "description": "Z.ai web search",
+      "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
+      "headers": {
+        "Authorization": "Bearer ${Z_AI_API_KEY}"
+      }
+    },
+    "zai-mcp-server": {
+      "description": "Z.ai GLM toolbox — slides, documents, and file tools",
+      "command": "npx",
+      "args": ["-y", "@z_ai/mcp-server"],
+      "env": {
+        "Z_AI_API_KEY": "${Z_AI_API_KEY}",
+        "Z_AI_MODE": "ZAI"
+      }
+    },
+    "zread": {
+      "description": "Z.ai zread — deep summaries of GitHub repositories",
+      "url": "https://api.z.ai/api/mcp/zread/mcp",
+      "headers": {
+        "Authorization": "Bearer ${Z_AI_API_KEY}"
+      }
+    }
+  }
+}

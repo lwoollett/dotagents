@@ -23,6 +23,7 @@ Review a pull request in the `JadeSoftware` Azure DevOps org and report findings
    - `xd://mcp__ado_repo_branch`, `xd://mcp__ado_repo_search_commits`
    - `xd://mcp__ado_pipelines_build | run | definition | build_log | artifact` (CI status)
    - `xd://mcp__ado_core_list_projects | list_project_teams | get_identity_ids`
+   - On pi (native MCP, codemode exposure) the same tools are `mcp__ado__<tool>` — call them from a codemode script, e.g. `tools.mcp__ado__repo_pull_request`; the forbidden writes are the same names with `_write` (`mcp__ado__repo_pull_request_thread_write`, `mcp__ado__wit_work_item_write`, `mcp__ado__pipelines_write`, …).
 4. If the user asks you to *post/submit/approve/merge/set-status*, **refuse and explain** this skill is read-only; offer to phrase the feedback so they can paste it themselves. Never silently call a write tool.
 
 ## PROJECT CONTEXT (hard-coded — don't re-derive)

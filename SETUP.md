@@ -117,13 +117,23 @@ pi can parse are picked up, and fixed dirs (`~/.pi/agent/agents/`, project
 `.pi/agents/`) still win name collisions over scan-root agents; builtins lose to
 both.
 
-MCP follows the omp home-variant pattern: pi-mcp-adapter reads the root `mcp.json`
-baseline *and* `~/.pi/agent/mcp.json` (its "Pi global override", merged last), so home
-machines link the full Z.ai set the same way OMP does:
+MCP is native since pi 1.0 and reads `config/pi/mcp.json` straight through the
+`~/.pi/agent` link — no extension involved. The tracked file carries the full home set
+(Z.ai and all) with credentials as `${ENV_VAR}` references, so it stays committable;
+there is deliberately no omp-style home/work variant swap here, because the whole agent
+directory is one symlink. A machine that lacks a key simply skips that server at startup
+(pi reports `Failed to resolve … from environment variable` and connects the rest), so
+a fresh clone works everywhere the baseline variables exist. `pi mcp list` checks every
+connection from a shell, `/mcp` inside a session inspects, reconnects, signs in, and
+toggles servers, and OAuth tokens (if ever used) land in `mcp-auth.json`, which is
+gitignored.
 
-```bash
-ln -sfn "$HOME/.agents/config/omp/mcp_home.json" "$HOME/.pi/agent/mcp.json"
-```
+Codemode is on by default: `"defaultTools": ["+codemode"]` in `settings.json` keeps the
+codemode tool available even when no MCP server connects — handy for parallel tool
+calls, filtering huge outputs before the model sees them, and the classifier/image
+models. MCP tools use the default `codemode` exposure, so they are reached by writing a
+script (`tools.mcp__<server>__<tool>`) instead of being declared to the model; give a
+server `"exposure": "direct"` in `mcp.json` if you want its tools listed outright.
 
 `pi install` drops vendor state under `config/pi/npm/` and `config/pi/git/` — each gets a
 pi-generated `.gitignore` (`*` + `!.gitignore`), so commit those two files and the
@@ -151,11 +161,13 @@ demand. No global install (`npm i -g`), no separate setup script, nothing to bab
 you just need Node.js + npm on your `PATH` and outbound network access the first time
 each server runs.
 
-There are two variants: the root `mcp.json` is the portable/work baseline (no Z.ai
-servers), while `config/omp/mcp_home.json` is the home variant with the full set
-(`zai-mcp-server`, `web-reader`, `web-search-prime`, `zread`). Home machines symlink the
-variant into `~/.omp/agent/mcp.json` (see the OMP section above); work machines link the
-root file or nothing at all. The table below covers the union of both variants.
+There are two layers now. The root `mcp.json` is the portable protocol file OMP reads
+(work baseline, no Z.ai servers), `config/omp/mcp_home.json` is OMP's home variant with
+the full set, and pi's native `config/pi/mcp.json` carries the full set in pi's own
+format — so pi clones need no variant swap at all (machines without a key just skip
+those servers). Home machines symlink the OMP variant into `~/.omp/agent/mcp.json`
+(see the OMP section above); work machines link the root file or nothing at all. The
+table below covers the union of all variants.
 
 | Server | Invocation | Transport | Required env var | Notes |
 | --- | --- | --- | --- | --- |
@@ -163,6 +175,8 @@ root file or nothing at all. The table below covers the union of both variants.
 | `context7` | `npx -y @upstash/context7-mcp@latest` | stdio | — | No auth. |
 | `github` | `npx -y @modelcontextprotocol/server-github` | stdio | `GITHUB_TOKEN`* | *Not declared in `mcp.json`; the server reads it from the inherited shell env. Export it in your profile. |
 | `playwright` | `npx -y @playwright/mcp@latest` | stdio | — | Browser automation. |
+| `fusion360` | `uvx --with mcp==1.26.0 fusion360-mcp-server --mode socket` | stdio | — | Needs the Fusion 360 MCP add-in listening on `localhost:9876` (see the `fusion360-mcp-cad-builds` skill). |
+| `godot` | `npx -y @coding-solo/godot-mcp` | stdio | — | `GODOT_PATH` in `config/pi/mcp.json` hard-codes the home-machine Godot.app path; adjust locally elsewhere. |
 | `zai-mcp-server` | `npx -y @z_ai/mcp-server` | stdio | `Z_AI_API_KEY` | Also sets `Z_AI_MODE=ZAI` internally. |
 | `web-reader` | `https://api.z.ai/api/mcp/web_reader/mcp` | streamable-http | `Z_AI_API_KEY` | Remote; no local install. |
 | `web-search-prime` | `https://api.z.ai/api/mcp/web_search_prime/mcp` | streamable-http | `Z_AI_API_KEY` | Remote; no local install. |
@@ -215,7 +229,7 @@ cp .env.example .env   # then edit .env with your own credentials
 
 | Variable | Used by | Purpose |
 | --- | --- | --- |
-| `PERSONAL_ACCESS_TOKEN` | `mcp.json` → "ado" server (omp via `config/omp/.env`; pi via shell env — `pi-mcp-adapter` reads `~/.agents/mcp.json` directly) | Azure DevOps PAT for repo / work-item / PR access |
+| `PERSONAL_ACCESS_TOKEN` | `mcp.json` → "ado" server (omp via `config/omp/.env`; pi via `config/pi/mcp.json`, which expands it from the shell env) | Azure DevOps PAT for repo / work-item / PR access |
 | `Z_AI_API_KEY` | `mcp.json` → zai-mcp-server, web-reader, web-search-prime, zread | Z.ai (Zhipu) API key for the web-search/reader MCP tools |
 | `ZAI_API_KEY` | pi → `zai` provider | Same Z.ai key; pi's env-var name omits the underscore. `~/.secrets` aliases it from `Z_AI_API_KEY` |
 | `MICROSOFT_FOUNDRY_API_KEY` | `models.yml` → microsoft-foundry provider | Azure AI Foundry key for hosted models |

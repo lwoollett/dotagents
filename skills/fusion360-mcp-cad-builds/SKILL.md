@@ -6,7 +6,7 @@ description: "Build, verify, and export parametric Fusion 360 geometry via the f
 # Building CAD in Fusion 360 via the MCP server
 
 ## When
-Creating/modifying parametric geometry in Fusion 360 through the fusion360-mcp-server tools — multi-feature parts, keyboard plates, enclosures, voronoi/lattice/topology-optimised cases. Use `fusion360_execute_code` for anything beyond 2-3 features; individual tool calls don't scale.
+Creating/modifying parametric geometry in Fusion 360 through the fusion360-mcp-server tools — multi-feature parts, keyboard plates, enclosures, voronoi/lattice/topology-optimised cases. Use `execute_code` (`mcp__fusion360__execute_code`; on pi call it from a codemode script as `tools.mcp__fusion360__execute_code`) for anything beyond 2-3 features; individual tool calls don't scale.
 
 ## Procedure
 1. **Probe before building.** This Fusion build differs from docs: `component.bRepBodies` (NOT `.bodies`), features expose no `.bodies`, `Line3D` has no `.direction` (compute from start/end points), `BRepBody` has no `deleteObject()`. First call: `json.dumps({'attrs': [a for a in dir(design.rootComponent)...]})` to confirm the surface.
@@ -55,7 +55,7 @@ Creating/modifying parametric geometry in Fusion 360 through the fusion360-mcp-s
    - Saving is the user's job (Cmd+S).
 11a. **Viewport renders** (for vision-model verification): `vp = app.activeViewport; c = vp.camera; c.eye/target/upVector = ...; vp.camera = c; vp.fit(); vp.saveAsImageFile(path, 1200, 900)`. **`vp.camera` returns a singleton — `viewOrientation` never overrides stale eye/target.** Always set eye/target/upVector explicitly (far ≈ 500+mm for quasi-orthographic elevations); verify render CONTENT with a vision delegation — mis-framed renders produce confident false verdicts. Low-angle underside shots (eye below the part) show lattice/sweep geometry best.
 12. **Reverse-engineering reference geometry**: STEP is ASCII — regex `CARTESIAN_POINT`. Binary STL: `b''.join(data[84+50*i+12 : 84+50*i+48] ...)` then `struct.iter_unpack('<9f', ...)`.
-13. **MCP plumbing on pi**: pi-mcp-adapter enumerates servers at session start — config edits need a reload. The fusion360 add-in has `runOnStartup: false`: if `execute_code` says "Not connected", check `nc -z localhost 9876`; user runs it from Fusion's ADD-INS dialog. Add-in log at `~/fusion360mcp.log`. Fusion itself may be closed between sessions — check the process, not just the port.
+13. **MCP plumbing on pi**: native MCP (pi ≥ 1.0, `config/pi/mcp.json`) connects servers in the background at session start — config edits need `/reload` or a session restart; `pi mcp list` checks the connection from a shell. The fusion360 add-in has `runOnStartup: false`: if `execute_code` says "Not connected", check `nc -z localhost 9876`; user runs it from Fusion's ADD-INS dialog. Add-in log at `~/fusion360mcp.log`. Fusion itself may be closed between sessions — check the process, not just the port.
 14. **Voronoi/lattice patterns (pure Python, no scipy)**:
    - Cells by half-plane clipping (Sutherland–Hodgman vs perpendicular bisectors). O(n²), fine ≤150 seeds. Cells are convex.
    - **Three seed flavours** (swap the seed-generation block only): (a) random + shallow wall-ownership ring + staggered inner ring; (b) hex = jittered triangular lattice (rows s·√3/2, alt rows +s/2, jitter ±0.14s → ~75% hexagons); (c) stress-graded look (Gaussian stress on loads + wall term; variable min-dist dart with symmetric radius acceptance; per-cell web inset by stress). All verified.
