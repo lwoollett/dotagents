@@ -1,6 +1,6 @@
 ---
 name: branch-review-parallel
-description: Review a local git branch/diff against main (incl. uncommitted working-tree branches) and fix findings via parallel reviewer/fixer agents
+description: Review a local git branch/diff against main (incl. uncommitted working-tree branches) and fix findings via parallel reviewer/fixer agents. Carries project overlays — e.g. PrivateAI.API adversarial review (reviewer lenses, build/test commands, do-not-flag rules)
 ---
 
 # Branch Review + Verified Fix Fan-Out
@@ -24,3 +24,12 @@ Slice by concern with DISJOINT file sets, e.g.: (a) core mechanism correctness, 
 - Compute any data-dependent test expectations yourself BEFORE spawning (grep counts, expected rankings) and embed the numbers in the task specs — determinism by construction.
 - Spawn parallel fix agents with disjoint file ownership (one writer per file), a shared behavior-contract section when prod + test agents depend on each other, and the constraint: no builds/tests/formats — parent integrates and verifies.
 - After all land: build, full suite, and SPOT-READ every critical edited region (never trust agent "done" claims); verify new-test count matches expectations.
+
+## Project overlay: PrivateAI.API
+
+Adversarial, evidence-grounded variant of the above.
+
+- **Reviewer lenses (the 3 subagents):** (a) core-flow correctness (services/functions touched — ordering, nullability, lifetimes, DI), (b) new-component correctness (plugins/models/corpus — verify against actual data files), (c) test quality (would each new test fail pre-fix? deleted coverage? gaps?).
+- **Build/test:** `dotnet build AskJ.Api.sln` (expect 0 warnings) and `dotnet test tests/AskJ.Api.Tests --filter "Category!=Integration"` (CI-equivalent; Integration tests need local Postgres :5566 — see askj-dev-db-provisioning skill).
+- **Do NOT flag (intentional AGENTS.md anti-patterns):** no rate limiting, no request-validation middleware. Be adversarial about correctness first, then contracts, then nits.
+- **Report:** verdict first; findings blocker→major→minor→nit with file:line + evidence; separate adjacent/pre-existing from in-scope; list explicitly verified-correct items so cleared concerns aren't re-litigated.

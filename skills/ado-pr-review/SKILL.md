@@ -1,6 +1,6 @@
 ---
 name: ado-pr-review
-description: Review an Azure DevOps pull request READ-ONLY and deliver the review as feedback in chat — never post to Azure. Accepts a dev.azure.com PR link, a bare PR number, a branch name, or "my prs". Use when the user asks to review/critique an ADO PR, pastes an Azure DevOps pull-request link or PR number/id, asks "what needs my review", "find PRs associated with me", or wants PR feedback without posting it.
+description: Review an Azure DevOps pull request READ-ONLY and deliver the review as feedback in chat — never post to Azure. Accepts a dev.azure.com PR link, a bare PR number, a branch name, or "my prs". Use when the user asks to review/critique an ADO PR, pastes an Azure DevOps pull-request link or PR number/id, asks "what needs my review", "find PRs associated with me", or wants PR feedback without posting it. Includes a CLI fallback (az + REST + local git) for when ADO MCP tools are not mounted.
 version: 1.0.0
 user-invocable: true
 argument-hint: "[PR link | PR number | branch | 'my prs']"
@@ -146,3 +146,37 @@ Rules: evidence-first, cite `file:line`, every blocking item has a concrete fix.
 - Do not post, vote, set status, merge, or comment on the PR.
 - Do not re-read files unnecessarily — `git diff` once, then targeted `read` of hot regions.
 - Do not invent repo/project names — use the map above, or resolve via `ado_repo_repository`/list.
+
+## CLI fallback (when ADO MCP tools are not mounted)
+
+Use this path when `xd://mcp__ado_repo_*` devices are absent. Same rules: READ-ONLY — never vote, comment, merge, or push.
+
+### 1. PR metadata
+```bash
+az extension add --name azure-devops --yes
+az repos pr show --id <N> --org https://dev.azure.com/JadeSoftware \
+  --query '{title:title,status:status,source:sourceRefName,target:targetRefName,merge:mergeStatus,draft:isDraft,creator:createdBy.displayName,lastSource:lastMergeSourceCommit.commitId,reviewers:reviewers[].{name:displayName,vote:vote}}'
+```
+
+### 2. Existing threads (REST)
+Token: `az account get-access-token --query accessToken -o tsv`. Use the DEFAULT token — do NOT pass `--resource 499b84ac-…` (fails AADSTS500011 in this tenant).
+```bash
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://dev.azure.com/JadeSoftware/AskJ/_apis/git/repositories/<repo>/pullRequests/<N>/threads?api-version=7.1"
+```
+Route MUST include `/repositories/<repo>/` — omitting it returns an HTML 404. Parse with jq: `.value[] | select(.status!="unknown")`, comments under `.comments[]`.
+
+### 3. Diff
+Prefer a local checkout (`ls ~/repos`, e.g. Evaluation → ~/repos/Evaluation):
+```bash
+git -C <path> fetch origin <source-sans-refs/heads/>
+git -C <path> diff <target>...origin/<source> --stat
+git -C <path> diff <target>...origin/<source> -- ':!*.lock' > /tmp/pr.diff   # exclude lockfiles
+```
+Branch source files without checkout: `git show origin/<source>:<path>`.
+
+### 4. CI (optional)
+`.../_apis/build/builds?branchName=refs/heads/<source>&$top=5&api-version=7.1` with same bearer token.
+
+### 5. Verify claims before flagging
+Grep the branch source (dead code, caching, docstring drift, extra= policy) with `git grep -n <pat> origin/<source> -- <paths>`; don't rely on diff hunks alone. Then apply the checklist and output format above; deliver in chat only.
