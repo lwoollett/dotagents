@@ -14,13 +14,16 @@ The main session model may not support image input. Never declare a visual/UI/sc
    ```bash
    SKR_SHOT=/tmp/skr_check.png SKR_WAIT=4 "/Applications/Godot.app/Contents/MacOS/Godot" --path game res://scenes/scan/scanner.tscn
    ```
+   - **Run WINDOWED, never `--headless`**: AutoShot's `await RenderingServer.frame_post_draw` NEVER resolves under the headless dummy renderer — the process idles forever with no error. ("Works headless of screen-recording permission" historically meant TCC-independent, not `--headless` mode.) Always wrap in a per-run watchdog (background + kill after N s) since windowed runs also occasionally hang environmentally.
    - Positional scene path overrides the main scene; autoloads load normally (unlike `-s` scripts).
    - WAIT past countdowns/interactions (~7s); different screens = separate runs.
    - macOS `screencapture` from the agent's shell FAILS (no Screen Recording permission). Don't use it.
-   - Wrap batch capture runs in a per-run watchdog (background + kill after N s): windowed runs occasionally hang environmentally. Retry flaky timestamps once or twice.
+   - Retry flaky timestamps once or twice.
    - **Capturing post-interaction states (drop cards, dialogs, mid-animation):** don't script input — add env-var-driven auto-actions to the scene. Cheap, deterministic, CI-able.
    - Delivering a shot to the user: copy to `~/Desktop/` with a descriptive name.
-1a. **Desktop-CAD captures (Fusion 360, proven):** don't screenshot the app — render from the API: `viewport.saveAsImageFile(path, w, h)` after setting the camera programmatically (`vp.camera` eye/target/upVector + `vp.fit()`). Verify the RENDER'S FRAMING with a vision delegation before judging geometry — mis-framed renders produce confident false verdicts (a "front wall" shot that was actually isometric read as "no voronoi pattern" for 3 iterations).
+   - **Debugging hung capture runs**: check whether SKR_SHOT/SKR_WAIT env vars were actually on the command, and remember a scene run without AutoShot firing simply idles — grep the log before assuming a code hang. `--quit-after N` (frames) is a quick main-loop health probe.
+   - **Godot 4.7 GDExtension note**: adding a .gdextension requires a `--headless --import` pass to register it in `.godot/extension_list.cfg`; an import that dies mid-run (Abort trap) corrupts `.godot` — wipe and re-import. Scene-mode runs then load the extension fine.
+1a. **Desktop-CAD captures (Fusion 360):** see the canonical `fusion360-mcp-cad-builds` skill (item 11a — viewport renders, camera singleton gotchas, framing verification). CAD geometry verification belongs to that skill; this one stays game/UI-focused.
 2. **Delegate the read** — keep it SMALL:
    ```
    subagent({agent: "delegate" or a vision agent, model: "zai/glm-5.3-flash", async: false, task: "Read /tmp/x.png ... <checklist>"})
@@ -36,8 +39,8 @@ The main session model may not support image input. Never declare a visual/UI/sc
 - Cover both autopilot and idle-player paths.
 
 ## Classifying assets (tiles/sprites) you cannot see
-- **Programmatic analysis FIRST** (PIL): sizes, alpha, dominant colors, edge-band extents, arm centerlines.
-- **Composite-scoring for tile mating**: compose candidate + neighbors in PIL, score junction continuity at the seam; windows clamped per-tile. Sweep rotations. Deterministic.
+- Programmatic analysis FIRST (PIL): sizes, alpha, dominant colors, edge-band extents, arm centerlines.
+- Composite-scoring for tile mating: compose candidate + neighbors in PIL, score junction continuity at the seam; windows clamped per-tile. Sweep rotations. Deterministic.
 - Small vision delegations for semantics only (mini contact sheets ~9 tiles). Never batch-classify big sets.
 - Watch for inverted color models: palette-PNG transparency reads as black.
 
@@ -45,3 +48,4 @@ The main session model may not support image input. Never declare a visual/UI/sc
 - User-shared screenshots from macOS temp dirs vanish fast — copy immediately; Desktop is stable.
 - Verify sprite-art facing with a one-image delegation before writing rotation math.
 - CAD camera APIs: `viewport.camera` often returns a singleton — setting `viewOrientation` on it may not override stale eye/target; set eye/target/upVector explicitly and far away (≈500+mm) for quasi-orthographic elevations.
+- **Live-webcam scenes**: macOS TCC can leave CameraServer feeds enumerated-but-inactive; verification of camera viewfinders may need the user to click Allow once (tccutil reset Camera <bundle-id> re-arms the prompt). Code must fall back gracefully to a no-camera UI state and THAT state gets vision-verified in the meantime.
