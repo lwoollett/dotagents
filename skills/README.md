@@ -42,7 +42,8 @@ skill changes there, never nest a git repo.
 
 ## Reference / hobby
 
-- twoee-canon-pdf-lookup, module-pdf-run-aid-extract, adnd2e-magic-item-xp-gp-lookup (scanned TSR AD&D 2e library)
+- adnd2e-magic-item-xp-gp-lookup — 2e magic item XP/GP canon (DMG + Encyclopedia Magica via fandom wiki API); self-contained, usable anywhere
+- (twoee-canon-pdf-lookup + module-pdf-run-aid-extract now live repo-local: ~/repos/twoee/.agents/skills/ — they are path-coupled to that tree's data/)
 
 ## Infra / meta
 
