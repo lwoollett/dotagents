@@ -16,9 +16,10 @@ Never declare a visual/UI/scene/rendering change done — or answer a question *
 
 ## Delegation protocol (generic)
 
+- **Delegate via the `visual` agent** — `subagent({agent: "visual", task: "Read /tmp/x.png … <checklist>"})`. Its definition (`~/.agents/agents/visual.md`, discovered via `subagents.agentScanDirs` in pi settings) binds model `glm-5.3-flash` (zai, vision-capable) + read/write tools + a vision-analyst prompt — the model binding is guaranteed by pi-subagents config, not by remembering a model hint. Fallback if the agent is unavailable: generic `delegate` with an explicit `model: "zai/glm-5.3-flash"`.
 - **Sizing (hard-won, multiple timeouts):** glm-5.3-flash handles ONE frame with a 5–6 point checklist in seconds. Multi-frame deep-analysis tasks and big classification batches time out. Structure time-lapses as compact per-frame table requests; on timeout, MINE THE TRANSCRIPT (`..._transcript.jsonl` in subagent-artifacts). Connection errors leave EMPTY transcripts — retry as single-frame.
 - **ONE subagent call per turn** — parallel calls are rejected ("a subagent call is already in progress"); fan out across sequential turns.
-- Task must include: expected contents (exact strings, colors, positions), a wrongness checklist, and demands for measured pixel values on geometry checks. A purpose-built `visual` user agent (read tool, glm-5.3-flash) beats generic delegate.
+- Task must include: expected contents (exact strings, colors, positions), a wrongness checklist, and demands for measured pixel values on geometry checks. The `visual` agent's report shape (verdict / text extracted / observations / issues / recommended fix) fits this — write the checklist to fill it.
 - **Act on findings, re-run until CONFIRMED.** Vision feedback often names the ROOT CAUSE ("openings are uniform rectangles" on CAD walls revealed a vertical-prism-cut limitation and collinear-seed bisectors) — treat descriptions as diagnostics, not just pass/fail. Distinguish STRUCTURE defects (fix and re-run) from taste parameters (density/size) — the latter go to the user with renders copied to ~/Desktop.
 
 ## Media-reading limits (cross-cutting)
