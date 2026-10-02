@@ -1,5 +1,5 @@
 ---
-name: generate-img-nvidia
+name: nvidia-image-gen
 description: >
   Generate images from text prompts using NVIDIA NiM. Supports the FLUX family —
   FLUX.1-dev for high-quality photorealistic/painterly output (~50 steps), and
@@ -33,7 +33,7 @@ Use this skill when the user:
 ## How to Use
 
 ```bash
-python ~/.agents/skills/generate-img-nvidia/scripts/generate.py \
+python ~/.agents/skills/nvidia-image-gen/scripts/generate.py \
   "your prompt here" \
   --model flux-dev \
   --width 1024 --height 1024
@@ -42,7 +42,7 @@ python ~/.agents/skills/generate-img-nvidia/scripts/generate.py \
 The script prints **only the output path** to stdout (all diagnostics to stderr), so callers can capture it:
 
 ```bash
-OUT=$(python ~/.agents/skills/generate-img-nvidia/scripts/generate.py "a cat on mars" -m flux-dev)
+OUT=$(python ~/.agents/skills/nvidia-image-gen/scripts/generate.py "a cat on mars" -m flux-dev)
 echo "Saved to: $OUT"
 ```
 
@@ -96,7 +96,7 @@ Common aspect ratios:
 ## Examples
 
 ```bash
-SCRIPT=~/.agents/skills/generate-img-nvidia/scripts/generate.py
+SCRIPT=~/.agents/skills/nvidia-image-gen/scripts/generate.py
 
 # High-quality square (default)
 python "$SCRIPT" "a studio photo of a brass teapot, soft window light"
