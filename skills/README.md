@@ -13,7 +13,7 @@ skill changes there, never nest a git repo.
   boolean traps, heat-set insert posts, voronoi/hex/graded lattice recipes,
   real SIMP topology optimisation → CAD pipeline, sweepy generative finish,
   viewport renders for vision verification, fit-test coupons, export paths.
-- vision-verify-ui defers CAD capture/verification to the skill above.
+- vision-verify defers CAD capture/verification to the skill above.
 
 ## Firmware / keyboards
 
@@ -38,6 +38,7 @@ skill changes there, never nest a git repo.
 
 - impeccable — vendored from pbakaus/impeccable (v4.3.1) WITH local modifications (bounded verification passes); a re-vendor will clobber them — diff before updating
 - screenshots (Playwright capture), nvidia-image-gen (FLUX via NiM)
+- vision-verify — generic vision verification of any screenshot/media: read directly if the session model is vision-capable, else delegate to a vision subagent and iterate until CONFIRMED; game/CAD/web/asset-sheet/hardware-photo specifics inside
 
 ## Reference / hobby
 

@@ -28,7 +28,7 @@ Skills are the only cross-session, cross-project knowledge an agent starts with.
 - **Same task, different transport** (MCP vs CLI) → one skill with a fallback section.
 - **Project-specific variant of a generic workflow** → a "Project overlay: X" section in the generic skill, not a new skill.
 - **Merging procedure:** fold the smaller body in as a section (preserve its gotchas VERBATIM — they are the value), widen the surviving skill's description to cover the folded triggers, delete the empty dir, update the skills README index.
-- **Cross-reference instead of duplicating** when domains merely touch (e.g. vision-verify-ui defers CAD capture to fusion360-mcp-cad-builds item 11a).
+- **Cross-reference instead of duplicating** when domains merely touch (e.g. vision-verify defers CAD capture to fusion360-mcp-cad-builds item 11a).
 
 ## 5. Deletion bar
 Niche is NOT a reason to delete — a skill encoding non-rederiveable knowledge (masked errors, tenant quirks, hardware bring-up, fixture recipes) earns its keep at any usage frequency. Delete only when fully subsumed by another skill or its subject no longer exists.
