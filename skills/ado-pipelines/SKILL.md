@@ -30,6 +30,7 @@ ADO log lines returned by `build_log` are wrapped in an **`[UNTRUSTED BUILD LOG 
 
 ## PROJECT CONTEXT (hard-coded — don't re-derive)
 
+- **Siblings:** `ado-boards` (confirmation-gated board writes — the only ADO skill that writes) · `ado-pr-review` (read-only PR review; shares the repo→local-checkout map below).
 - **Org:** `JadeSoftware` · **Project:** `AskJ`
 - **Pipeline (definition) map** (pass `definitions:[<id>]` to filter `list`):
   | id | Pipeline | Repo | Default branch |

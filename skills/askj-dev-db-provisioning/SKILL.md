@@ -11,7 +11,7 @@ description: "Provision the local dev Postgres (askj_dev on :5566) so PrivateAI.
 ## Fix
 1. Start the dev DB:
    ```
-   cd PrivateAI.Infrastructure/docker && docker compose -f docker-compose.dev.yml up -d postgres
+   cd ~/Storage/repos/PrivateAI/Infrastructure/docker && docker compose -f docker-compose.dev.yml up -d postgres
    ```
    Container `privateai-dev-db` publishes 5566 but only provisions `privateai_dev` user/db — the test needs `askj_dev`.
 2. Provision the test identity (superuser so the test can create/drop subject roles):
@@ -22,11 +22,12 @@ description: "Provision the local dev Postgres (askj_dev on :5566) so PrivateAI.
    ```
 3. Apply EF migrations (AskJDbContextFactory reads DATABASE_URL env var):
    ```
-   cd PrivateAI.API && DATABASE_URL="Host=localhost;Port=5566;Database=askj_dev;Username=askj_dev;Password=askj_dev_pass" \
+   cd ~/Storage/repos/PrivateAI/API && DATABASE_URL="Host=localhost;Port=5566;Database=askj_dev;Username=askj_dev;Password=askj_dev_pass" \
      dotnet ef database update --project AskJ.Api.csproj
    ```
 4. Re-run the suite; RLS test seeds/cleans its own rows.
 
 ## Notes
+- Checkouts live at `~/Storage/repos/PrivateAI/{Infrastructure,API}` (same repo map as the ado-* skills); the original relative `cd PrivateAI.*` paths only worked from that parent.
 - No repo script provisions askj_dev — this env is hand-built; connection string duplicated in `tests/AskJ.Api.Tests/RlsIsolationTests.cs` and `local.settings.example.json`.
 - Fresh named volume (`pgdata`) starts empty of askj_dev even if the container has run before.

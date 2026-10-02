@@ -47,6 +47,7 @@ Render a team's Kanban **board** from the `JadeSoftware` / `AskJ` project, and m
 
 ## PROJECT CONTEXT (hard-coded — don't re-derive)
 
+- **Siblings:** `ado-pipelines` (read-only CI triage) · `ado-pr-review` (read-only PR review) — same org/project; this is the only ADO skill permitted to write, and only through its confirmation gate.
 - **Org:** `JadeSoftware` · **Project:** `AskJ` (process: **Agile**; User Story/Feature/Task/Bug states: `New → Active → Resolved → Closed`).
 - **Teams** (resolve aliases/fuzzy to these):
   | Team | Notes |

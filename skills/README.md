@@ -36,7 +36,8 @@ skill changes there, never nest a git repo.
 
 ## Frontend / media
 
-- impeccable, screenshots (Playwright capture), nvidia-image-gen (FLUX via NiM)
+- impeccable — vendored from pbakaus/impeccable (v4.3.1) WITH local modifications (bounded verification passes); a re-vendor will clobber them — diff before updating
+- screenshots (Playwright capture), nvidia-image-gen (FLUX via NiM)
 
 ## Reference / hobby
 
