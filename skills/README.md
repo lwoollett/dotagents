@@ -17,9 +17,7 @@ skill changes there, never nest a git repo.
 
 ## Firmware / keyboards
 
-- zmk-firmware-config — ZMK config repos for nice!nano (flat config, build.sh, 2026 API notes)
-- ffkb-v2-zmk-loop — ffkb v2 build/flash/Cirque trackpad bring-up
-- zmk-pin-diag — meter-less GPIO bus diagnostics for ZMK boards
+- zmk — ZMK firmware on nice!nano in three parts: generic config-repo recipe (flat layout, build.sh, 2026 API notes), ffkb v2 board overlay (build/flash/Cirque trackpad bring-up, I²C no-ACK triage), meter-less GPIO pin/bus diagnostics (merged from zmk-firmware-config + ffkb-v2-zmk-loop + zmk-pin-diag)
 
 ## Code review / git
 
