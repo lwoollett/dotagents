@@ -48,5 +48,4 @@ skill changes there, never nest a git repo.
 ## Infra / meta
 
 - askj-dev-db-provisioning — local dev Postgres :5566 for PrivateAI.API integration tests
-- pi-mcp-stdio-install — adding stdio MCP servers to pi
 - skill-writing — authoring, homologating, and deleting skills (this library's constitution)
