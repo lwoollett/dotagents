@@ -39,7 +39,7 @@ Never declare a visual/UI/scene/rendering change done — or answer a question *
    ```
    SKR_SHOT=/tmp/skr_check.png SKR_WAIT=4 "/Applications/Godot.app/Contents/MacOS/Godot" --path game res://scenes/scan/scanner.tscn
    ```
-   - Run WINDOWED, never `--headless`: AutoShot's `await RenderingServer.frame_post_draw` NEVER resolves under the headless dummy renderer — the process idles forever with no error. ("Works headless of screen-recording permission" historically meant TCC-independent, not `--headless` mode.) Always wrap in a per-run watchdog (background + kill after N s) since windowed runs also occasionally hang environmentally.
+   - Run WINDOWED, never `--headless` — the `godot` skill §1 trap 6 owns the why (`frame_post_draw` never fires under the dummy renderer; "headless-safe" historically meant TCC-independent, not `--headless` mode). Always wrap every run in a per-run watchdog (background + kill after N s) — windowed runs occasionally hang environmentally.
    - Positional scene path overrides the main scene; autoloads load normally (unlike `-s` mode).
    - WAIT past countdowns/interactions (~7s); different screens = separate runs.
    - Retry flaky timestamps once or twice.

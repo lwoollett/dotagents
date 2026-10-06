@@ -32,7 +32,7 @@ skill changes there, never nest a git repo.
 
 ## Games / engines
 
-- godot-4-gdscript-traps, godot-gdextension-cpp-build, dungeondraft-modding
+- godot — §1 GDScript/UI traps + §2 GDExtension C++ builds (consolidated 2026-10-06 from godot-4-gdscript-traps + godot-gdextension-cpp-build; headless-await trap canonical here) · dungeondraft-modding
 
 ## Frontend / media
 
