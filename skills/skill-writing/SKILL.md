@@ -47,8 +47,11 @@ cd ~/.agents && git add skills/ && git commit -m "feat(skills)|chore(skills): �
 
 ## 8. Audit checklist (run when the library drifts)
 Deliver findings as ✅ healthy / 🔴 broken / 🔀 merge / ➕ extend with evidence paths, and get a scope decision (report-only vs fix) before executing anything.
-- **Name/dir match:** frontmatter `name` must equal the dir name. A mismatch usually means the body's own paths are broken too — hit: `nvidia-image-gen` with name `generate-img-nvidia`, all 4 `scripts/generate.py` paths dead. Check: `for d in */; do awk -F'"' '/^name:/{print $2}' "$d/SKILL.md"; done` vs dir names.
-- **Body path existence:** grep bodies for `~/.agents/skills/<x>/` references and verify each target exists on disk.
+- **Name/dir match:** frontmatter `name` must equal the dir name. A mismatch usually means the body's own paths are broken too — hit: `nvidia-image-gen` with name `generate-img-nvidia`, all 4 `scripts/generate.py` paths dead. Print mismatches only, stripping quotes so quoted AND bare names both compare clean (a naive `awk -F'"' '{print $2}'` false-mismatches every unquoted or single-quoted frontmatter — 11/18 in the 2026-10-06 run):
+  ```bash
+  for d in */; do n=$(sed -n 's/^name:[[:space:]]*//p' "$d/SKILL.md" | head -1); n="${n%\"}"; n="${n#\"}"; n="${n%\'}"; n="${n#\'}"; [ "${d%/}" = "$n" ] || echo "MISMATCH: dir=${d%/} name=$n"; done
+  ```
+- **Body path existence:** grep bodies for `~/.agents/skills/<x>/` references and verify each target exists on disk. Also verify non-skill `~/` refs (e.g. `~/.agents/agents/visual.md`).
 - **Tracked-ness:** `git ls-files <skill-dir>` empty → run `git check-ignore -v`. The .gitignore "local-only skills" section can silently untrack a portable skill (hit: pi-mcp-stdio-install ignored at `.gitignore:40` while its content was fully portable — a fresh clone would lose it).
 - **Uncommitted drift:** `git status --short skills/` — a modified constitution (this file) drifting uncommitted is itself a finding.
 - **Staleness:** per-skill `git log -1 --format='%ad' --date=short -- <dir> | sort` to spot abandoned vs actively maintained.
