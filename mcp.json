@@ -59,6 +59,16 @@
       "command": "npx",
       "transport": "stdio"
     },
+    "rea": {
+      "args": [
+        "/opt/homebrew/lib/node_modules/npm/bin/npx-cli.js",
+        "-y",
+        "rea-agents@6.0.0",
+        "mcp"
+      ],
+      "command": "/opt/homebrew/bin/node",
+      "transport": "stdio"
+    },
     "web-reader": {
       "transport": "streamable-http",
       "url": "https://api.z.ai/api/mcp/web_reader/mcp",

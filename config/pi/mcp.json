@@ -58,6 +58,16 @@
       "command": "npx",
       "args": ["-y", "@playwright/mcp@latest"]
     },
+    "rea": {
+      "description": "REA — reverse-engineer anything: local binaries, Electron/JS, .NET, browser targets (pairs with the reverse-engineer-anything skill). Pinned to brew node 26 via npx-cli because engines require node >=22.19 and nvm default is 22.18",
+      "command": "/opt/homebrew/bin/node",
+      "args": [
+        "/opt/homebrew/lib/node_modules/npm/bin/npx-cli.js",
+        "-y",
+        "rea-agents@6.0.0",
+        "mcp"
+      ]
+    },
     "web-reader": {
       "description": "Z.ai web reader — fetch a URL as readable content",
       "url": "https://api.z.ai/api/mcp/web_reader/mcp",
