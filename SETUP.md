@@ -8,7 +8,7 @@ described below. Every command is idempotent — `ln -sfn` replaces an existing 
 complaining, and `mkdir -p` on a path that already exists does nothing — so it's safe to
 re-run anything here whenever you've lost track of what you've already done.
 
-Pi is the only harness now (see README for the OpenCode → OMP → Pi history); everything
+Pi is the only harness; everything
 under `config/` other than `git/` is Pi config.
 
 ## Back up first

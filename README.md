@@ -2,10 +2,8 @@
 
 Agents folder. Sadly most harnesses don't use this yet, so symlinks are needed. See [SETUP.md](./SETUP.md).
 
-Pure [Pi](https://pi.dev) everywhere now. The migration
-went OpenCode → OMP → plain Pi; once Pi grew native MCP, skills, and subagents, the
-middleman harness stopped earning its keep and got uninstalled (CLI, `~/.omp`, configs —
-all gone). This repo is now just my Pi config plus the portable agents layer.
+Pure [Pi](https://pi.dev) everywhere. This repo is my Pi config plus the
+portable agents layer.
 
 My `~/.agents` attempts to mimic the [.agents Protocol](https://dotagentsprotocol.com/), but again, half the harnesses don't support it for some reason.
 
