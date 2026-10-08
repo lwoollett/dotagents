@@ -45,6 +45,10 @@ process.env.PI_AUTOLEARN_CONFIG = path.join(base, "autolearn.json");
 // Dynamic import is required: the module reads PI_AUTOLEARN_* env at import time,
 // so the overrides above must be set before it loads. Static import cannot do that.
 const extPath = path.join(import.meta.dirname, "index.ts");
+// SAFETY: the dynamically imported module is this extension's own index.ts (checked in
+// alongside this harness); its default export is the ExtensionAPI factory, which this
+// harness exercises only through the structural PiSurface subset above — a deliberate
+// narrowing the real ExtensionAPI type can't express.
 const { default: factory } = (await import(extPath)) as unknown as { default: (pi: PiSurface) => void };
 
 // --- fake ExtensionAPI ---
@@ -122,6 +126,20 @@ await assert.rejects(() => runManage({ action: "create", name: "x-skill", descri
 const upd = await runManage({ action: "update", name: "test-skill", description: "New desc", body: "# New\n" });
 assert.match(upd.content[0].text, /updated/);
 assert.ok(fs.readFileSync(skillFile, "utf8").includes("# New"));
+// no-op guard: byte-identical update rejected as error (duplicate-call loop breaker)
+await assert.rejects(
+  () => runManage({ action: "update", name: "test-skill", description: "New desc", body: "# New\n" }),
+  /no-op/,
+);
+assert.ok(fs.readFileSync(skillFile, "utf8").includes("# New"), "file untouched by rejected no-op");
+// divergent payload still allowed (e.g. deliberate revert)
+const revert = await runManage({ action: "update", name: "test-skill", description: "New desc", body: "# Body\n\ncontent\n" });
+assert.match(revert.content[0].text, /updated/);
+// re-sending the now-current state again is a no-op again
+await assert.rejects(
+  () => runManage({ action: "update", name: "test-skill", description: "New desc", body: "# Body\n\ncontent\n" }),
+  /no-op/,
+);
 await assert.rejects(() => runManage({ action: "delete", name: "no-such" }), /does not exist/);
 await runManage({ action: "delete", name: "test-skill" });
 assert.ok(!fs.existsSync(skillFile), "skill dir removed");

@@ -150,6 +150,16 @@ export function writeSkillFile(
   if (mode === "update" && !fs.existsSync(file)) {
     throw new Error(`skill '${n}' does not exist — use action:'create'`);
   }
+  // No-op guard: byte-identical content already on disk. Re-issuing a succeeded
+  // identical call is a known agent loop hazard (2026-10-06 ×10, 2026-10-10 ×4);
+  // surface it as an error so the loop gets corrective feedback instead of success.
+  if (fs.existsSync(file) && fs.readFileSync(file, "utf8") === full) {
+    throw new Error(
+      `skill '${n}' already contains exactly this content — ${mode} is a no-op, nothing written. ` +
+        `Rule: ONE manage_skill call per intended final state. If the file needs changing, ` +
+        `the payload must differ; if it is already correct, stop.`,
+    );
+  }
   fs.mkdirSync(dir, { recursive: true });
   const tmp = path.join(dir, `.SKILL.md.tmp-${process.pid}-${Date.now()}`);
   fs.writeFileSync(tmp, full, "utf8");
