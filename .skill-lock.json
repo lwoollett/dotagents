@@ -59,7 +59,6 @@
     "gemini-cli",
     "github-copilot",
     "kimi-cli",
-    "opencode",
     "warp"
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "description": "Portable .agents Protocol MCP server config, translated from vendor sources listed in 'source'. Credential literals from the sources are replaced with ${ENV_VAR} placeholders; set these variables in the shell environment (vendor SDKs expand the same syntax). Vendor files under config/ remain authoritative for runtime until native protocol consumption exists.",
+  "description": "Portable .agents Protocol MCP server config — mirror of pi's config/pi/mcp.json (the runtime source). Credential literals are replaced with ${ENV_VAR} placeholders; set these variables in the shell environment. pi itself reads config/pi/mcp.json through the ~/.pi/agent symlink; this file exists for protocol portability.",
   "mcpServers": {
     "ado": {
       "args": [
@@ -26,17 +26,70 @@
       "command": "npx",
       "transport": "stdio"
     },
+    "fusion360": {
+      "args": [
+        "--with",
+        "mcp==1.26.0",
+        "fusion360-mcp-server",
+        "--mode",
+        "socket"
+      ],
+      "command": "uvx",
+      "transport": "stdio"
+    },
     "github": {
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "command": "npx",
+      "transport": "stdio"
+    },
+    "godot": {
+      "args": ["-y", "@coding-solo/godot-mcp"],
+      "command": "npx",
+      "environment": {
+        "GODOT_PATH": "/Applications/Godot.app/Contents/MacOS/Godot"
+      },
+      "transport": "stdio"
+    },
+    "konnect": {
+      "command": "/Users/luke/.local/bin/konnect",
       "transport": "stdio"
     },
     "playwright": {
       "args": ["-y", "@playwright/mcp@latest"],
       "command": "npx",
       "transport": "stdio"
+    },
+    "web-reader": {
+      "transport": "streamable-http",
+      "url": "https://api.z.ai/api/mcp/web_reader/mcp",
+      "headers": {
+        "Authorization": "Bearer ${Z_AI_API_KEY}"
+      }
+    },
+    "web-search-prime": {
+      "transport": "streamable-http",
+      "url": "https://api.z.ai/api/mcp/web_search_prime/mcp",
+      "headers": {
+        "Authorization": "Bearer ${Z_AI_API_KEY}"
+      }
+    },
+    "zai-mcp-server": {
+      "args": ["-y", "@z_ai/mcp-server"],
+      "command": "npx",
+      "environment": {
+        "Z_AI_API_KEY": "${Z_AI_API_KEY}",
+        "Z_AI_MODE": "ZAI"
+      },
+      "transport": "stdio"
+    },
+    "zread": {
+      "transport": "streamable-http",
+      "url": "https://api.z.ai/api/mcp/zread/mcp",
+      "headers": {
+        "Authorization": "Bearer ${Z_AI_API_KEY}"
+      }
     }
   },
-  "requiredEnvironment": ["PERSONAL_ACCESS_TOKEN"],
+  "requiredEnvironment": ["PERSONAL_ACCESS_TOKEN", "Z_AI_API_KEY"],
   "version": 1
 }

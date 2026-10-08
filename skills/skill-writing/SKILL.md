@@ -13,14 +13,14 @@ Skills are the only cross-session, cross-project knowledge an agent starts with.
 - **Nothing** — anything re-derivable in seconds (ls, --help, official docs).
 
 ## 2. Structure
-- One dir per skill: `~/.agents/skills/<kebab-name>/SKILL.md`. Shared by pi AND omp — changes are additive only, never restructure the tree.
+- One dir per skill: `~/.agents/skills/<kebab-name>/SKILL.md`. Shared by every pi session and machine — changes are additive only, never restructure the tree.
 - Frontmatter: `name` (kebab, matches dir), `description`, optional `version`. The description is the ONLY thing a future session sees when deciding to load — make it trigger-rich: what it does + when to use + example user phrasings + key exclusions ("never post to Azure", "READ-ONLY").
 - Body order: one-line purpose → "Use when" triggers → numbered procedure with exact commands, real paths, real API names → gotchas as numbered traps (symptom → root cause → fix) → cross-references to sibling skills by name.
 - Self-contained: resolve relative paths against the skill dir (`dirname SKILL.md`); assume zero session context.
 
 ## 3. Placement — global vs repo-local
 - **Global (`~/.agents/skills/`)**: workflows valid from any cwd. Test: every relative path in the body resolves against the skill dir (bundled files) or is absolute/portable.
-- **Repo-local (`<repo>/.agents/skills/`)**: skills path-coupled to one tree — bodies referencing repo-relative paths (`data/`, manifests, vault layouts) are only correct with cwd inside that repo. Pi discovers project `.agents/skills/` from the cwd's ancestors (stops at repo root), even when the tree is not a git repo; omp follows the same Agent Skills spec. Repo-local skills travel with the clone and stop polluting unrelated sessions' routing.
+- **Repo-local (`<repo>/.agents/skills/`)**: skills path-coupled to one tree — bodies referencing repo-relative paths (`data/`, manifests, vault layouts) are only correct with cwd inside that repo. Pi discovers project `.agents/skills/` from the cwd's ancestors (stops at repo root), even when the tree is not a git repo. Repo-local skills travel with the clone and stop polluting unrelated sessions' routing.
 - **Moving one:** `mv` the dir, note the relocation in the skills README, commit the removal to dotagents. Self-contained but single-project skills may stay global (portable knowledge beats strict clustering).
 
 ## 4. Homologation — one home per knowledge domain

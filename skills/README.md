@@ -1,6 +1,6 @@
 # Shared agent skills (`~/.agents/skills`)
 
-Skill library shared by pi / omp agents. Each directory is a self-contained
+Skill library for pi. Each directory is a self-contained
 skill: a `SKILL.md` with frontmatter (name, description) and a markdown body
 of procedures, gotchas, and recipes. Authoring/homologation rules live in the
 **skill-writing** skill. The whole tree is the `dotagents` git repo — commit

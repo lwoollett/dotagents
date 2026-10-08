@@ -26,6 +26,30 @@ https://github.com/sting8k/pi-vcc
   worth it even without MCP (parallel tool calls, output filtering, classifier + image
   models through the `models` global).
 
+## MCP servers (2026-10-09)
+
+Current set in `config/pi/mcp.json` — 11 servers, mirrored into the root protocol
+`mcp.json`:
+
+- `ado` — Azure DevOps (`@azure-devops/mcp`, JadeSoftware org, PAT auth via
+  `${PERSONAL_ACCESS_TOKEN}`; boards, work items, repos, PRs, pipelines)
+- `konnect` — KiCad 10 schematic/PCB design, local binary `~/.local/bin/konnect` over
+  the KiCad IPC API; needs KiCad running with the KiCad API enabled (see the
+  `kicad-konnect-pcb-design` skill)
+- `context7` — up-to-date library/framework docs (`@upstash/context7-mcp`)
+- `fusion360` — parametric CAD via the socket add-in on `localhost:9876`
+  (`uvx --with mcp==1.26.0 fusion360-mcp-server --mode socket`)
+- `github` — `@modelcontextprotocol/server-github`; reads `GITHUB_TOKEN` from the
+  inherited shell env (not declared in mcp.json)
+- `godot` — `@coding-solo/godot-mcp`; `GODOT_PATH` hard-codes the home-machine
+  Godot.app path
+- `playwright` — browser automation, DOM inspection, screenshots
+- `zai-mcp-server` — Z.ai GLM toolbox (slides, documents, file tools),
+  `${Z_AI_API_KEY}`
+- `web-reader` / `web-search-prime` / `zread` — remote Z.ai endpoints
+  (streamable-http, `Authorization: Bearer ${Z_AI_API_KEY}`): readable URL fetch,
+  web search, deep GitHub-repo summaries
+
 ## Subagent monitoring (2026-09-23)
 
 - pi-subagents ships its own monitoring UI: FleetView (persistent panel under the

@@ -10,15 +10,11 @@
 */.env.*
 config/*/.env
 config/*/.env.*
-# OpenCode vendor config with embedded credentials
-config/opencode/opencode.json
 # per-machine credential overrides for portable files, if ever introduced
 mcp.local.json
 models.local.json
 *.credentials.json
 auth.json
-# machine-specific LSP install choices (not portable)
-config/opencode/lsp-install-decisions.json
 # pi runtime state inside the vendored agent dir (config/pi = ~/.pi/agent)
 config/pi/bin/
 config/pi/models-store.json

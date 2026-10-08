@@ -1,17 +1,17 @@
 /**
- * pi-autolearn — port of omp's Auto-Learn (experimental) for pi.
+ * pi-autolearn — Auto-Learn for pi (experimental).
  *
- * Tools `learn` + `manage_skill`, writing omp-compatible formats into the canonical
- * shared directories so both harnesses read one brain:
- *   skills   → ~/.agents/skills/<name>/SKILL.md        (pi discovers natively; omp via managed-skills symlink)
+ * Tools `learn` + `manage_skill`, writing markdown skills and memories into the
+ * canonical shared directories so every pi session reads one brain:
+ *   skills   → ~/.agents/skills/<name>/SKILL.md        (discovered natively via config/pi/skills)
  *   memories → ~/.agents/memories/<encoded-cwd>/       (learned.md lessons + memory_summary.md read-path)
  *
  * Auto-capture: after `agent_settled` with ≥ minToolCalls tool executions in the run
  * (interactive TUI mode only), fire a hidden `autolearn-nudge` follow-up turn with
- * tools restricted to learn/manage_skill, restored when the capture run ends — omp's
+ * tools restricted to learn/manage_skill, restored when the capture run ends — the
  * AutoLearnController pattern on pi's native events.
  *
- * Not ported from omp: SQLite-backed consolidation pipeline (pi-vcc covers pi memory),
+ * Deliberately absent: SQLite-backed consolidation pipeline (pi-vcc covers pi memory),
  * mnemopi/hindsight backends, authored-skill shadow refusal (single shared skills dir).
  *
  * Paths are env-overridable for testing:
@@ -24,7 +24,7 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
-// --- constants (omp parity) -------------------------------------------------
+// --- constants ------------------------------------------------------------------
 
 const SKILL_NAME_PATTERN = /^[a-z0-9][a-z0-9-]{0,63}$/;
 const MAX_SKILL_BYTES = 64_000;
@@ -89,9 +89,9 @@ function scaffoldConfig(): void {
   }
 }
 
-// --- sanitization (omp parity) ------------------------------------------------
+// --- sanitization ------------------------------------------------------------------
 
-// omp: secret-redacted + injection-neutralized (control chars, <>, backticks stripped).
+// secret-redacted + injection-neutralized (control chars, <>, backticks stripped).
 const SECRET_PATTERNS =
   /(sk-[A-Za-z0-9_-]{8,}|ghp_[A-Za-z0-9]{20,}|gho_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|nvapi-[A-Za-z0-9_-]{10,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|Bearer\s+[A-Za-z0-9._-]{20,})/gi;
 
@@ -169,14 +169,14 @@ export function deleteSkill(name: string): string {
 
 // --- memories (~/.agents/memories/<encoded-cwd>) -------------------------------
 
-/** omp encodeProjectPath: cwd minus leading slash, [/\\:] → '-', wrapped in '--'. */
+/** encodeProjectPath: cwd minus leading slash, [/\\:] → '-', wrapped in '--'. */
 export function encodeProjectPath(cwd: string): string {
   return "--" + cwd.replace(/^\//, "").replace(/[/\\:]/g, "-") + "--";
 }
 
 
 /**
- * Append a lesson to learned.md, omp-format: `- lesson` / `- lesson _(context: ctx)_`,
+ * Append a lesson to learned.md, format: `- lesson` / `- lesson _(context: ctx)_`,
  * newest-first (inserted before the first bullet), exact-line dedupe, cap 100 bullets,
  * hand-edited non-bullet lines preserved.
  */
@@ -228,7 +228,7 @@ export function buildMemoryBlock(cwd: string): string | null {
   }
   if (!parts.length) return null;
   let block =
-    "## Project memory (shared with omp; lives in ~/.agents/memories)\n\n" + parts.join("\n\n");
+    "## Project memory (lives in ~/.agents/memories)\n\n" + parts.join("\n\n");
   if (block.length > MAX_MEMORY_PROMPT_CHARS) {
     block = block.slice(0, MAX_MEMORY_PROMPT_CHARS).trimEnd() + "\n…(truncated)";
   }
@@ -330,7 +330,7 @@ export default function piAutolearn(pi: ExtensionAPI): void {
     label: "Manage Skill",
     description:
       "Managed skills: SKILL.md files in the shared skills directory (~/.agents/skills), " +
-      "surfaced to future sessions of both pi and omp like other skills. Use for repeatable " +
+      "surfaced to future sessions like other skills. Use for repeatable " +
       "procedures worth codifying — setup sequences, debugging recipes, project-specific " +
       "workflows. Prefer enhancing an existing managed skill to creating a near-duplicate.",
     promptSnippet: "manage_skill: mint reusable procedure skills (create/update/delete)",
@@ -406,7 +406,7 @@ export default function piAutolearn(pi: ExtensionAPI): void {
     lastRunAborted = false;
     if (aborted) return;
 
-    cfg = loadConfig(); // live re-check, omp parity
+    cfg = loadConfig(); // live re-check
     if (!cfg.enabled || !cfg.autoContinue) return;
     if (ctx.mode !== "tui") return; // interactive sessions only
     if (count < cfg.minToolCalls) return;

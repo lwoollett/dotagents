@@ -28,7 +28,7 @@ Review a pull request in the `JadeSoftware` Azure DevOps org and report findings
 
 ## PROJECT CONTEXT (hard-coded — don't re-derive)
 
-- **Siblings:** `ado-boards` (confirmation-gated board writes — the only ADO skill that writes) · `ado-pipelines` (read-only CI triage; its pi/omp MCP tool-naming note applies here too).
+- **Siblings:** `ado-boards` (confirmation-gated board writes — the only ADO skill that writes) · `ado-pipelines` (read-only CI triage; its pi MCP tool-naming note applies here too).
 - **Org:** `JadeSoftware` · **Project:** `AskJ` (all repos below live here)
 - **Repo → local checkout map** (use local `git` for diffs when available — fastest, gives the real diff):
   | ADO repo | Local path | Default branch |

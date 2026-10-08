@@ -1,8 +1,7 @@
 # Model Setup
 
-- **OMP** -- Work shit, uses vllm hosted internally, free tokens are free.
-- **OMP-Home** -- Home shit, uses z.ai
-- **OpenCode** -- uses z.ai cause pre-work ban.
+- **pi (work)** -- Work shit, uses vllm hosted internally, free tokens are free.
+- **pi (home)** -- Home shit, uses z.ai
 
 
 ---
