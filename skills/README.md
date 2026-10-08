@@ -17,6 +17,12 @@ skill changes there, never nest a git repo.
 - engineering-drawing — vendored from earthtojake/text-to-cad @ v0.7.17 (MIT):
   ISO drawing PDFs (views, hidden lines, measured dims, hole callouts, title block)
   from any STEP file via `uvx --from cadgen==0.7.17` — pairs with Fusion STEP exports.
+- step-parts — vendored from text-to-cad @ v0.7.17 (MIT): step.parts catalog search +
+  STEP download of real standard parts (screws, bearings, standoffs, servos, boards);
+  stdlib-only downloader; insert into Fusion builds instead of placeholder geometry.
+- dfam-check — vendored from text-to-cad @ v0.7.17 (MIT): mesh printability gate
+  (wall thickness, overhangs, support area, orientations) per process (FDM/SLS/SLA/PBF/MJF);
+  run on Fusion STL exports before printing; deps via `uvx --with trimesh ...`.
 
 ## Firmware / keyboards
 
