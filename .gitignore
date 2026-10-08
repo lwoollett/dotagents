@@ -73,3 +73,7 @@ config-backups/
 
 # --- node/plugin artifacts (native tool dirs, not this repo's content) ---
 node_modules/
+
+# --- third-party skill vaults (full upstream packages; tracked router skills in
+# skills/ point here and carry restore commands — fresh clones re-clone upstream) ---
+skills-vault/

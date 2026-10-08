@@ -1,11 +1,11 @@
 ---
 name: "skill-writing"
-description: "Use when creating, updating, placing, merging, or deleting agent skills (SKILL.md files under ~/.agents/skills or repo-local .agents/skills) — authoring structure, trigger descriptions, global-vs-repo-local placement, homologation/merge rules, the deletion bar, the dotagents git convention, and the library audit checklist. Also when deciding whether something deserves a skill at all vs a memory."
+description: "Authoring, homologating, vendoring, and deleting skills in the ~/.agents/skills library — structure, placement, merge rules, third-party vendoring pins, deletion bar, audit checklist"
 ---
 
-# Skill Writing (meta)
+# Skill Writing
 
-Skills are the only cross-session, cross-project knowledge an agent starts with. Write for a future session that has your tools but none of your context.
+Authoring, homologating, and deleting skills in this library (~/.agents/skills, the `dotagents` repo). This is the library's constitution.
 
 ## 1. Skill vs memory vs nothing
 - **Skill** — a repeatable PROCEDURE (ordered steps, commands, parameters, recipes) you will follow again in another session or project. Reuse is the bar; one-off fixes and current-state facts do not qualify.
@@ -16,45 +16,37 @@ Skills are the only cross-session, cross-project knowledge an agent starts with.
 - One dir per skill: `~/.agents/skills/<kebab-name>/SKILL.md`. Shared by every pi session and machine — changes are additive only, never restructure the tree.
 - Frontmatter: `name` (kebab, matches dir), `description`, optional `version`. The description is the ONLY thing a future session sees when deciding to load — make it trigger-rich: what it does + when to use + example user phrasings + key exclusions ("never post to Azure", "READ-ONLY").
 - Body order: one-line purpose → "Use when" triggers → numbered procedure with exact commands, real paths, real API names → gotchas as numbered traps (symptom → root cause → fix) → cross-references to sibling skills by name.
-- Self-contained: resolve relative paths against the skill dir (`dirname SKILL.md`); assume zero session context.
+- Bundled extras (scripts/, references/, requirements.txt) live in the skill dir and are referenced by relative path resolved against the dir.
 
 ## 3. Placement — global vs repo-local
 - **Global (`~/.agents/skills/`)**: workflows valid from any cwd. Test: every relative path in the body resolves against the skill dir (bundled files) or is absolute/portable.
 - **Repo-local (`<repo>/.agents/skills/`)**: skills path-coupled to one tree — bodies referencing repo-relative paths (`data/`, manifests, vault layouts) are only correct with cwd inside that repo. Pi discovers project `.agents/skills/` from the cwd's ancestors (stops at repo root), even when the tree is not a git repo. Repo-local skills travel with the clone and stop polluting unrelated sessions' routing.
 - **Moving one:** `mv` the dir, note the relocation in the skills README, commit the removal to dotagents. Self-contained but single-project skills may stay global (portable knowledge beats strict clustering).
 
-## 4. Homologation — one home per knowledge domain
-- Same knowledge in two skills = drift and stale copies. Before creating, check for an existing skill covering the domain; prefer `update` over near-duplicate `create` (manage_skill supports both).
-- **Same task, different transport** (MCP vs CLI) → one skill with a fallback section.
-- **Project-specific variant of a generic workflow** → a "Project overlay: X" section in the generic skill, not a new skill.
-- **Merging procedure:** fold the smaller body in as a section (preserve its gotchas VERBATIM — they are the value), widen the surviving skill's description to cover the folded triggers, delete the empty dir, update the skills README index.
-- **Read both FULL bodies BEFORE creating anything.** Compose the final merged body first, then write it ONCE (file write or a single manage_skill call) — never mint placeholder/draft skills mid-consolidation: manage_skill creates live library entries instantly, and an interrupted placeholder loop leaves junk dirs in the tree (2026-10-06 hit: a ten-call create/delete placeholder loop fired during the godot consolidation before any source read). Sequence: read sources → compose → single final write → rm old dirs → README → commit.
-- **Cross-reference instead of duplicating** when domains merely touch (e.g. vision-verify defers CAD capture to fusion360-mcp-cad-builds item 11a).
+## 4. Homologation (merging near-duplicates)
+- Before creating: grep the library + README for overlapping triggers. Prefer one merged skill with sections over two dirs that both fire on the same phrase.
+- Merge = move best body into the surviving dir, delete the other dir, add a README tombstone line ("X merged into Y (date)"), update all cross-references, single commit.
+- **Read-first rule**: read BOTH SKILL.md files fully before merging — bodies usually hold incompatible hard-won details that must be interleaved, not concatenated. A merge decided from descriptions alone has already gone wrong.
 
-## 5. Deletion bar
-Niche is NOT a reason to delete — a skill encoding non-rederiveable knowledge (masked errors, tenant quirks, hardware bring-up, fixture recipes) earns its keep at any usage frequency. Delete only when fully subsumed by another skill or its subject no longer exists.
+## 5. Vendoring third-party skills
+- **Bar**: only vendor a skill whose tooling runs WITHOUT the parent project's runtime unless that runtime is already in use here. engineering-drawing passes because `uvx --from cadgen==0.7.17 python <drawing>.py` works standalone on any STEP file (the text-to-cad plugin/viewer is NOT needed); a skill hard-wired to a plugin MCP server we don't run is dead weight. Prefer skills that pair with what we already have (Fusion STEP/STL exports, zmk builds).
+- **Procedure** (proven on impeccable + three text-to-cad skills, 2026-10-09):
+  1. Copy the whole skill dir from the upstream clone — keep `LICENSE`, `scripts/`, `references/`, `requirements.txt` verbatim.
+  2. Replace the upstream "Provenance: maintained in …" header with a pinned block: `Vendored from <repo> @ <version> (<short-commit>, <date>) — MIT, see LICENSE. Upstream evolves independently; re-vendor deliberately and diff local changes first.` Plus: the exact runtime command (`uvx --from …` / `python3`, deps via `uvx --with …`), and the smoke-test date + result.
+  3. Smoke-test the real tooling once (live API call, real invocation) — never vendor on README trust alone.
+  4. README entry in skills/README.md tagged `vendored from <repo> @ <version>` under the right section.
+  5. Cross-pointer in the paired skill (e.g. fusion360-mcp-cad-builds item 11 → engineering-drawing).
+  6. Single commit: `feat(skills): vendor <name> from <repo> @ <version>`.
+- **Never modify vendored code for lint/style** (lens advisories on vendor files are accepted, not fixed); only surgical fixes, recorded in the provenance header. Local mods are why re-vendor = diff first, never blind copy (impeccable precedent: a re-vendor will clobber local bounded-verification changes).
+- Current vendored set: impeccable (pbakaus/impeccable v4.3.1), engineering-drawing + step-parts + dfam-check (earthtojake/text-to-cad v0.7.17, 8a352ee).
 
-## 6. Git convention (dotagents)
-`~/.agents` is ONE repo (remote `git@github.com:lwoollett/dotagents.git`). NEVER `git init` inside its subdirectories. After any skill change:
-```bash
-cd ~/.agents && git add skills/ && git commit -m "feat(skills)|chore(skills): …" && git push
-```
+## 6. Deletion bar
+- Delete when: no session has loaded it in ~a month of relevant work AND its triggers are covered elsewhere AND it's not referenced by siblings. Tombstone it in the README ("removed X (date) — superseded by Y") so future-you doesn't re-adopt it.
+- Never delete a skill the same turn you doubt it — demote to a README "cold" note first, delete on the next audit.
 
-## 7. Quality bar (patterns from skills that earned their keep)
-- Numbers beat adjectives: "expect 0 warnings", "assert volume 36–44 cm³", not "should be about right".
-- Every trap entry = symptom + cause + fix, phrased so the SYMPTOM is greppable when it recurs.
-- Parameter tables for recipes; assert discipline for verification steps.
-- Capture the same session the lesson lands — deferred capture loses the detail (exact numbers, error strings, order of operations).
-
-## 8. Audit checklist (run when the library drifts)
-Deliver findings as ✅ healthy / 🔴 broken / 🔀 merge / ➕ extend with evidence paths, and get a scope decision (report-only vs fix) before executing anything.
-- **Name/dir match:** frontmatter `name` must equal the dir name. A mismatch usually means the body's own paths are broken too — hit: `nvidia-image-gen` with name `generate-img-nvidia`, all 4 `scripts/generate.py` paths dead. Print mismatches only, stripping quotes so quoted AND bare names both compare clean (a naive `awk -F'"' '{print $2}'` false-mismatches every unquoted or single-quoted frontmatter — 11/18 in the 2026-10-06 run):
-  ```bash
-  for d in */; do n=$(sed -n 's/^name:[[:space:]]*//p' "$d/SKILL.md" | head -1); n="${n%\"}"; n="${n#\"}"; n="${n%\'}"; n="${n#\'}"; [ "${d%/}" = "$n" ] || echo "MISMATCH: dir=${d%/} name=$n"; done
-  ```
-- **Body path existence:** grep bodies for `~/.agents/skills/<x>/` references and verify each target exists on disk. Also verify non-skill `~/` refs (e.g. `~/.agents/agents/visual.md`).
-- **Tracked-ness:** `git ls-files <skill-dir>` empty → run `git check-ignore -v`. The .gitignore "local-only skills" section can silently untrack a portable skill (hit: pi-mcp-stdio-install ignored at `.gitignore:40` while its content was fully portable — a fresh clone would lose it).
-- **Uncommitted drift:** `git status --short skills/` — a modified constitution (this file) drifting uncommitted is itself a finding.
-- **Staleness:** per-skill `git log -1 --format='%ad' --date=short -- <dir> | sort` to spot abandoned vs actively maintained.
-- **Duplication clusters:** read FULL bodies; the same trap fact appearing verbatim in ≥2 skills (e.g. headless-await hang, `cp -X` flash rule, CDC truncation across ZMK skills) is a §4 merge/overlay candidate and pre-drift.
-- **Description honesty:** description claims must match the body's actual coverage (e.g. "ANY visual change" with no web branch = gap to fix or narrow the claim).
+## 7. Audit checklist (run when the library feels bloated)
+1. `ls ~/.agents/skills` — every dir still has a live description in the README index?
+2. Any two skills whose descriptions both claim the same trigger phrases? → §4.
+3. Any skill not loaded in ~a month of sessions where it should have fired? → tighten the description (it's a routing problem, not a quality problem) or §6.
+4. Vendored skills: upstream released since the pin? Note the delta in the README; re-vendor only after diffing local changes (§5).
+5. Cross-references resolve (grep sibling names mentioned in bodies).
