@@ -52,6 +52,7 @@ Creating/modifying parametric geometry in Fusion 360 through the fusion360-mcp-s
    - `createSTEPExportOptions(path)` (whole design) → works; with a body arg → broken.
    - `createSTLExportOptions(body, path)` → works (body is arg 1!).
    - `createFusionArchiveExportOptions(path)` → works; snapshot BEFORE destructive rebuilds.
+   - **Dimensioned drawings**: export STEP, then run the `engineering-drawing` skill on it (`uvx --from cadgen==0.7.17 python <part>_drawing.py`) — ISO sheets, real measured dimensions, hole callouts, PDF out. Vendored from text-to-cad.
    - Saving is the user's job (Cmd+S).
 11a. **Viewport renders** (for vision-model verification): `vp = app.activeViewport; c = vp.camera; c.eye/target/upVector = ...; vp.camera = c; vp.fit(); vp.saveAsImageFile(path, 1200, 900)`. **`vp.camera` returns a singleton — `viewOrientation` never overrides stale eye/target.** Always set eye/target/upVector explicitly (far ≈ 500+mm for quasi-orthographic elevations); verify render CONTENT with a vision delegation — mis-framed renders produce confident false verdicts. Low-angle underside shots (eye below the part) show lattice/sweep geometry best.
 12. **Reverse-engineering reference geometry**: STEP is ASCII — regex `CARTESIAN_POINT`. Binary STL: `b''.join(data[84+50*i+12 : 84+50*i+48] ...)` then `struct.iter_unpack('<9f', ...)`.

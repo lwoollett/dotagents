@@ -14,6 +14,9 @@ skill changes there, never nest a git repo.
   real SIMP topology optimisation → CAD pipeline, sweepy generative finish,
   viewport renders for vision verification, fit-test coupons, export paths.
 - vision-verify defers CAD capture/verification to the skill above.
+- engineering-drawing — vendored from earthtojake/text-to-cad @ v0.7.17 (MIT):
+  ISO drawing PDFs (views, hidden lines, measured dims, hole callouts, title block)
+  from any STEP file via `uvx --from cadgen==0.7.17` — pairs with Fusion STEP exports.
 
 ## Firmware / keyboards
 
