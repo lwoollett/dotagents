@@ -20,6 +20,10 @@
         "PERSONAL_ACCESS_TOKEN": "${PERSONAL_ACCESS_TOKEN}"
       }
     },
+    "konnect": {
+      "description": "Konnect — AI-assisted schematic/PCB design for KiCad 10 (IPC API; needs KiCad running with the KiCad API enabled)",
+      "command": "/Users/luke/.local/bin/konnect"
+    },
     "context7": {
       "description": "Up-to-date documentation for libraries and frameworks",
       "command": "npx",
