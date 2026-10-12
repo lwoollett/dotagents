@@ -161,6 +161,7 @@ cp .env.example .env   # then edit .env with your own credentials
 | `ZAI_API_KEY` | pi → `zai` provider | Same Z.ai key; pi's env-var name omits the underscore. `~/.secrets` aliases it from `Z_AI_API_KEY` |
 | `NVIDIA_API_KEY` | `skills/nvidia-image-gen/` | NVIDIA API key for image generation (must start with `nvapi-`; get at https://build.nvidia.com) |
 | `NODE_USE_ENV_PROXY` | `mcp.json` → "ado" env | Optional; set to `1` to make the ado server honour proxy env vars |
+| `FOUNDRY_URL` / `FOUNDRY_USERNAME` / `FOUNDRY_PASSWORD` | `mcp.json` → "foundry" server | Foundry VTT instance URL + MCP user credentials for the foundryvtt-mcp fork (built at `~/repos/foundryvtt-mcp/dist/index.js`; unset vars simply skip the server) |
 
 None of these are needed for the rest of the repo to work — only the tools and skills that
 consume them care.

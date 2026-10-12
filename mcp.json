@@ -98,6 +98,20 @@
       "headers": {
         "Authorization": "Bearer ${Z_AI_API_KEY}"
       }
+    },
+    "foundry": {
+      "command": "bun",
+      "args": [
+        "/Users/luke/repos/foundryvtt-mcp/dist/index.js"
+      ],
+      "environment": {
+        "FOUNDRY_URL": "${FOUNDRY_URL}",
+        "FOUNDRY_USERNAME": "${FOUNDRY_USERNAME}",
+        "FOUNDRY_PASSWORD": "${FOUNDRY_PASSWORD}",
+        "FOUNDRY_TIMEOUT": "30000",
+        "FOUNDRY_WRITE_ENABLED": "true"
+      },
+      "transport": "stdio"
     }
   },
   "requiredEnvironment": ["PERSONAL_ACCESS_TOKEN", "Z_AI_API_KEY"],

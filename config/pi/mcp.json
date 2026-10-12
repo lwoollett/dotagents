@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "ado": {
-      "description": "Azure DevOps for JadeSoftware/AskJ — boards, work items, repos, PRs, and pipeline runs",
+      "description": "Azure DevOps for JadeSoftware/AskJ \u2014 boards, work items, repos, PRs, and pipeline runs",
       "command": "npx",
       "args": [
         "-y",
@@ -21,13 +21,16 @@
       }
     },
     "konnect": {
-      "description": "Konnect — AI-assisted schematic/PCB design for KiCad 10 (IPC API; needs KiCad running with the KiCad API enabled)",
+      "description": "Konnect \u2014 AI-assisted schematic/PCB design for KiCad 10 (IPC API; needs KiCad running with the KiCad API enabled)",
       "command": "/Users/luke/.local/bin/konnect"
     },
     "context7": {
       "description": "Up-to-date documentation for libraries and frameworks",
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp@latest"]
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
     },
     "fusion360": {
       "description": "Parametric CAD in Fusion 360 via the local socket add-in (execute_code and friends)",
@@ -43,12 +46,18 @@
     "github": {
       "description": "GitHub repositories, issues, pull requests, and code search",
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"]
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ]
     },
     "godot": {
-      "description": "Drive the Godot editor — run projects, inspect the scene tree",
+      "description": "Drive the Godot editor \u2014 run projects, inspect the scene tree",
       "command": "npx",
-      "args": ["-y", "@coding-solo/godot-mcp"],
+      "args": [
+        "-y",
+        "@coding-solo/godot-mcp"
+      ],
       "env": {
         "GODOT_PATH": "/Applications/Godot.app/Contents/MacOS/Godot"
       }
@@ -56,10 +65,13 @@
     "playwright": {
       "description": "Browser automation, DOM inspection, and screenshots via Playwright",
       "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest"]
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
     },
     "rea": {
-      "description": "REA — reverse-engineer anything: local binaries, Electron/JS, .NET, browser targets (pairs with the reverse-engineer-anything skill). Pinned to brew node 26 via npx-cli because engines require node >=22.19 and nvm default is 22.18",
+      "description": "REA \u2014 reverse-engineer anything: local binaries, Electron/JS, .NET, browser targets (pairs with the reverse-engineer-anything skill). Pinned to brew node 26 via npx-cli because engines require node >=22.19 and nvm default is 22.18",
       "command": "/opt/homebrew/bin/node",
       "args": [
         "/opt/homebrew/lib/node_modules/npm/bin/npx-cli.js",
@@ -69,7 +81,7 @@
       ]
     },
     "web-reader": {
-      "description": "Z.ai web reader — fetch a URL as readable content",
+      "description": "Z.ai web reader \u2014 fetch a URL as readable content",
       "url": "https://api.z.ai/api/mcp/web_reader/mcp",
       "headers": {
         "Authorization": "Bearer ${Z_AI_API_KEY}"
@@ -83,20 +95,37 @@
       }
     },
     "zai-mcp-server": {
-      "description": "Z.ai GLM toolbox — slides, documents, and file tools",
+      "description": "Z.ai GLM toolbox \u2014 slides, documents, and file tools",
       "command": "npx",
-      "args": ["-y", "@z_ai/mcp-server"],
+      "args": [
+        "-y",
+        "@z_ai/mcp-server"
+      ],
       "env": {
         "Z_AI_API_KEY": "${Z_AI_API_KEY}",
         "Z_AI_MODE": "ZAI"
       }
     },
     "zread": {
-      "description": "Z.ai zread — deep summaries of GitHub repositories",
+      "description": "Z.ai zread \u2014 deep summaries of GitHub repositories",
       "url": "https://api.z.ai/api/mcp/zread/mcp",
       "headers": {
         "Authorization": "Bearer ${Z_AI_API_KEY}"
       }
+    },
+    "foundry": {
+      "command": "bun",
+      "args": [
+        "/Users/luke/repos/foundryvtt-mcp/dist/index.js"
+      ],
+      "env": {
+        "FOUNDRY_URL": "${FOUNDRY_URL}",
+        "FOUNDRY_USERNAME": "${FOUNDRY_USERNAME}",
+        "FOUNDRY_PASSWORD": "${FOUNDRY_PASSWORD}",
+        "FOUNDRY_TIMEOUT": "30000",
+        "FOUNDRY_WRITE_ENABLED": "true"
+      },
+      "description": "Read access to the BrokenWorld Foundry VTT world (actors, journals, scenes, combat) - lwoollett fork with v14.369 Origin-header fix"
     }
   }
 }
