@@ -38,16 +38,18 @@ skill changes there, never nest a git repo.
 - ado-boards — Kanban boards (read free, writes as confirmed diffs)
 - ado-pipelines — CI failure triage, real errors from logs (read-only)
 - ado-pr-review — PR review in chat only; includes az CLI + REST fallback when MCP tools aren't mounted
+- ado-wiki — wiki page reads/edits/publishes (az CLI for creates, wikiMaster git repo for edits; GFM table rendering gotchas)
 
 ## Games / engines
 
-- godot — §1 GDScript/UI traps + §2 GDExtension C++ builds (consolidated 2026-10-06 from godot-4-gdscript-traps + godot-gdextension-cpp-build; headless-await trap canonical here) · dungeondraft-modding
+- godot — §1 GDScript/UI traps + §2 GDExtension C++ builds (consolidated 2026-10-06 from godot-4-gdscript-traps + godot-gdextension-cpp-build; headless-await trap canonical here) · dungeondraft-modding · fvtt-content-ops (BrokenWorld Foundry VTT world content via the foundry MCP server: bulk actor/journal/scene/map import, SWADE conversion)
 
 ## Security / offensive
 
 - claude-red — ROUTER to 79 offensive-security skills (SnailSploit/claude-red @ 739512a, MIT) vaulted at ../skills-vault/claude-red; web/wireless/exploit-dev/privesc/AD/post-ex/fuzzing/OSINT methodology, read-on-demand; authorized engagements/CTF only
 - reverse-skill — ROUTER to the reverse-skill package @ cab634b (44 scenario skills + 42 CTF orchestrator sub-skills, consent-gated ops: master-route → case-init → scope.md before any target action) vaulted at ../skills-vault/reverse-skill
 - reverse-engineer-anything — vendored from morluto/rea @ 2a4979b (skill v33): live binary/Electron/JS/.NET analysis via the `rea` MCP server (npm rea-agents 6.0.0, registered in config/pi/mcp.json on brew node 26)
+- red-team-review-fanout — full-repo red-team review fan-out (vaulted claude-red methodology, 5-lane reviewers, live/deployment checks, findings → ADO Bugs + wiki report); carries the PrivateAI overlay
 
 ## Frontend / media
 
@@ -66,4 +68,6 @@ skill changes there, never nest a git repo.
 
 - autoresearch — vendored from uditgoenka/autoresearch @ 050e30d (v2.2.2, MIT; after Karpathy's autoresearch): autonomous goal→metric→loop iteration (plan/probe/debug/fix/security/ship/scenario/predict/reason subcommands as sibling .md files)
 - askj-dev-db-provisioning — local dev Postgres :5566 for PrivateAI.API integration tests
+- authentik-api-provisioning — Authentik providers/apps/outposts via API; Caddy forward-auth gating of subdomains
+- (pi-fleet-service-deploy now lives repo-local: ~/repos/ansible/.agents/skills/ — path-coupled to that tree's playbooks + Caddyfile)
 - skill-writing — authoring, homologating, and deleting skills (this library's constitution)
