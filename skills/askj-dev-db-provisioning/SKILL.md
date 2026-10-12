@@ -17,12 +17,12 @@ description: "Provision the local dev Postgres (askj_dev on :5566) so PrivateAI.
 2. Provision the test identity (superuser so the test can create/drop subject roles):
    ```
    docker exec privateai-dev-db psql -U privateai_dev \
-     -c "CREATE ROLE askj_dev LOGIN PASSWORD 'askj_dev_pass' SUPERUSER;" \
+     -c "CREATE ROLE askj_dev LOGIN PASSWORD '<local-dev-password>' SUPERUSER;" \
      -c "CREATE DATABASE askj_dev OWNER askj_dev;"
    ```
-3. Apply EF migrations (AskJDbContextFactory reads DATABASE_URL env var):
+3. Apply EF migrations (AskJDbContextFactory reads DATABASE_URL env var — pick any local-only password, same value in both steps):
    ```
-   cd ~/Storage/repos/PrivateAI/API && DATABASE_URL="Host=localhost;Port=5566;Database=askj_dev;Username=askj_dev;Password=askj_dev_pass" \
+   cd ~/Storage/repos/PrivateAI/API && DATABASE_URL="Host=localhost;Port=5566;Database=askj_dev;Username=askj_dev;Password=<local-dev-password>" \
      dotnet ef database update --project AskJ.Api.csproj
    ```
 4. Re-run the suite; RLS test seeds/cleans its own rows.
