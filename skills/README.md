@@ -4,7 +4,9 @@ Skill library for pi. Each directory is a self-contained
 skill: a `SKILL.md` with frontmatter (name, description) and a markdown body
 of procedures, gotchas, and recipes. Authoring/homologation rules live in the
 **skill-writing** skill. The whole tree is the `dotagents` git repo — commit
-skill changes there, never nest a git repo.
+skill changes there, never nest a git repo. Some machine-local skills are
+gitignored on purpose (see `.gitignore` "local-only skills") — they exist in
+this tree but are not part of the shared library.
 
 ## CAD / hardware design
 
@@ -43,6 +45,7 @@ skill changes there, never nest a git repo.
 ## Games / engines
 
 - godot — §1 GDScript/UI traps + §2 GDExtension C++ builds (consolidated 2026-10-06 from godot-4-gdscript-traps + godot-gdextension-cpp-build; headless-await trap canonical here) · dungeondraft-modding · fvtt-content-ops (BrokenWorld Foundry VTT world content via the foundry MCP server: bulk actor/journal/scene/map import, SWADE conversion)
+- (brokenworld-vault-batch-editing now lives repo-local: ~/Documents/lwlt/TTRPGs/BrokenWorld/.agents/skills/ — path-coupled to the vault tree)
 
 ## Security / offensive
 

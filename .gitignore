@@ -74,6 +74,20 @@ config-backups/
 # --- node/plugin artifacts (native tool dirs, not this repo's content) ---
 node_modules/
 
+# --- local-only skills (useful on this machine only; kept out of the shared repo) ---
+skills/browser-verify-frontend-migration/
+skills/canvas-pixel-verify/
+skills/oklch-tonal-ramps/
+skills/pixel-sprite-authoring-loop/
+skills/switch-clone-controller-fw/
+skills/verify-singlefile-browser-game/
+
+# --- homelab agentmanager client extension (built from ~/repos/agentmanager; URL/token
+# resolve at runtime from ~/.config/watercooler.json or WATERCOOLER_* env) ---
+config/pi/extensions/watercooler/
+# pi web-access runtime state
+config/pi/pi-web-access/
+
 # --- third-party skill vaults (full upstream packages; tracked router skills in
 # skills/ point here and carry restore commands — fresh clones re-clone upstream) ---
 skills-vault/

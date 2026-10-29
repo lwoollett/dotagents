@@ -92,6 +92,12 @@ after runs with ≥5 tool calls. Its config is `config/pi/autolearn.json`
 there are dev-only test plumbing — gitignored, not needed at runtime; pi injects the
 imports itself).
 
+Also present but **gitignored (local-only)**: `config/pi/extensions/watercooler/` — the
+pi-client extension of the homelab agentmanager service, built from `~/repos/agentmanager`
+(deploy playbook: `~/repos/ansible/watercooler/deploy.yaml`). Rebuild/redeploy it from
+there; it resolves its URL/token at runtime from `~/.config/watercooler.json` or
+`WATERCOOLER_*` env vars.
+
 ## MCP tool servers
 
 The MCP servers that actually run are declared in `config/pi/mcp.json` (pi's native
