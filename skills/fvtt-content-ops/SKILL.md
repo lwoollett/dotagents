@@ -26,6 +26,7 @@ Use when building/importing content for the BrokenWorld campaign on Luke's Found
 - **NO ComfyUI on the home network** (standing rule) — generation happens on Luke's work rig (4× RTX PRO 6000).
 - `~/Documents/lwlt/TTRPGs/BrokenWorld/Portraits/` holds: `portraits-pack.jsonl` (204 prompts: 2e-ink style bible from ImageGeneration.md + per-creature Visual Description + posture cue; slugged `file` names match actor names), `comfy-batch.py` (stdlib ComfyUI API driver, resumable, skips existing `out/` files), `README-portraits.md` (run sheet).
 - When `Portraits/out/*.png` returns from the rig: set each actor `img` + `prototypeToken.texture.src` = `worlds/brokenworld/Data/portraits/<file>` (upload first), scripted via the MCP fork (update_actor_attributes patches system + prototypeToken dot-paths).
+- Art also gets embedded into the vault docs themselves (`<!-- bestiary-art:start -->` block after each H1, images under `Bestiary/images/<biome>/`).
 
 ## v14 scene gotchas
 
@@ -70,10 +71,14 @@ Use when building/importing content for the BrokenWorld campaign on Luke's Found
 ## Content state
 
 - ✅ 204 bestiary NPCs (10 biome folders); 121 journals; 2 scenes (world 66 pins, region 9), Ground levels + initialLevel, imgs → `worlds/brokenworld/Data/maps/` (serving 200; client render unconfirmed).
-- ⚠️ Cleanup: duplicate "Hex Map Design" journal; duplicate "Ground" levels; 0306 contradiction; grid alignment unverified; fog unconfigured.
-- ⏳ Queued: portraits set-on-actors (awaiting rig output); Silken Chain battle scene; 4 level-0 PC actors; Starting Area Bestiary actors; backups; upstream PR; auto-launch test.
+- ✅ **Vault bestiary statblocks are now SWADE** (2026-10-13): all 204 creature docs + 10 inline blocks in `Starting Area Bestiary.md` converted to core-book/Fantasy-Companion statblock format by `Tools/swade-statblocks.py` (dry-run/sample/`--only`/`--write`/`--check` modes). Original 2e tables preserved as hidden `<!-- 2e source -->` comments under each statblock. The Hollow and The Well-Harrow hand-polished as ◆ Wild Cards. Pre-conversion snapshot: `backup-2e-statblocks-20261013.tar.gz` (127M, delete once confirmed good).
+- ⚠️ **Foundry actors drift from vault docs** (docs are the more-polished truth): actors gave non-combatants Fighting d4/Parry 4 (docs: no Fighting, Parry 2), actor Toughness values exclude armor-in-total (docs follow book display: total includes Armor), swarms lack the canonical Swarm ability, bosses aren't Wild Cards. Re-sync pass pending.
+- ⚠️ Cleanup: duplicate "Hex Map Design" journal resolved; "Ground" level dups resolved; 0306 contradiction resolved. Grid alignment unverified; fog unconfigured.
+- ⏳ Queued: portraits set-on-actors + doc art embedding (another session was mid-run 2026-10-13); Silken Chain battle scene; 4 level-0 PC actors; Starting Area Bestiary actors; backups; upstream PR; auto-launch test.
 - 🚫 Exclude: LitRPG/, __pycache__/, Hexes/{brace-artifact}/, ._* AppleDouble files.
 
 ## 2e→SWADE mapping (bestiary)
 
-THAC0 19+/–→Fighting d4 … ≤12→d12 (none if Attacks:None); HD→Str/Vig d6..d12; HP 40+/80+→+1/+2 Size; AC ≤0→armor +4 … ≥7→+0; Size T→-2 S→-1 M→0 L→+2 H→+3 G→+4; Move 6/9/12/15/18+→Pace 5/6/8/10/12 (`Fl`→Flight); Morale Fearless→Spirit d10+Fearless, ≤7→d4; Damage XdY→Str+dN ability text (raw dice preserved).
+THAC0 19+/–→Fighting d4 … ≤12→d12 (**none if Attacks:None → Parry 2**); HD→Str/Vig d6..d12 (parse FIRST number — "1/2" is ½, not 12); HP 40+/80+→+1/+2 Size; AC ≤0→armor +4 … ≥7→+0 (regex must accept negative AC); Size T→-2 S→-1 M→0 L→+2 H→+3 G→+4; Move 6/9/12/15/18+→Pace 5/6/8/10/12, 3→3, 0→"—" (pure swimmers: "Pace: —" + Aquatic bullet); Morale Fearless→Spirit d10+Fearless ability, ≤7→d4.
+
+**SWADE display conventions (learned from core + Fantasy Companion PDFs)**: Toughness total ALREADY INCLUDES Armor (armor in parens) and full Size value; multi-attack routines = Frenzy/Improved Frenzy edges but "or"-joined attacks ("1 bite or 1 gore") are one attack — no edge; natural weapons "Str+dN" from biggest 2e damage die (ranges "2-8"→2d4); Size labels 4-7 Large (+1 Wound), 8-11 Huge (+2), 12+ Gargantuan; Smarts "(A)" for animals; canonical ability texts exist for Fearless/Construct/Undead/Aquatic/Flight/Burrow/Swarm/Tentacles/Swallow Whole — reuse them verbatim. Multiple agent sessions CAN write the vault concurrently (art-embedder ran mid-batch 2026-10-13): snapshot first, run fast, verify both directions afterward (0 art markers lost, 205/205 converted).
