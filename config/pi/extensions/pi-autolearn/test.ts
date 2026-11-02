@@ -16,7 +16,8 @@ interface ToolResult {
 interface ToolShape {
   name: string;
   // test seam: ToolDefinition.execute params are Static<TParams>; generic erased here.
-  execute: (toolCallId: string, params: never) => Promise<ToolResult>;
+  // Optional trailing args mirror the real execute(toolCallId, params, signal, onUpdate, ctx) surface.
+  execute: (toolCallId: string, params: never, signal?: unknown, onUpdate?: unknown, ctx?: unknown) => Promise<ToolResult>;
 }
 interface PiSurface {
   registerTool: (tool: ToolShape) => void;
@@ -144,50 +145,127 @@ await assert.rejects(() => runManage({ action: "delete", name: "no-such" }), /do
 await runManage({ action: "delete", name: "test-skill" });
 assert.ok(!fs.existsSync(skillFile), "skill dir removed");
 
-// --- 4. controller: threshold, tools restriction, restore, no re-trigger ---
+// --- 4. controller: user-run gate, threshold, capture-run restriction, restore, budget ---
 const nudgeCount = () => sentMessages.filter((s) => s.msg.customType === "autolearn-nudge").length;
-for (let i = 0; i < 4; i++) fire("tool_execution_end");
-fire("agent_settled", {}, tui);
+const ALL_TOOLS = ["read", "bash", "edit", "write", "learn", "manage_skill"];
+const toolEnd = (toolName: string) => fire("tool_execution_end", { type: "tool_execution_end", toolName, isError: false, result: null });
+const startUserRun = () => fire("before_agent_start", { type: "before_agent_start", messageType: "user", systemPrompt: "SP" }, tui);
+const startCustomRun = (customType: string) =>
+  fire("before_agent_start", { type: "before_agent_start", messageType: "custom", message: { customType }, systemPrompt: "SP" }, tui);
+const startCaptureRun = () => startCustomRun("autolearn-nudge");
+const settle = (aborted = false) => fire("agent_settled", { type: "agent_settled", aborted }, tui);
+const endRun = () => fire("agent_end", { type: "agent_end", messages: [] });
+
+startUserRun();
+for (let i = 0; i < 4; i++) toolEnd("bash");
+settle();
 assert.equal(nudgeCount(), 0, "below threshold: no nudge");
 
-for (let i = 0; i < 5; i++) fire("tool_execution_end");
-fire("agent_settled", {}, tui);
-assert.equal(nudgeCount(), 1, "nudge sent at threshold");
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 1, "nudge sent at threshold for a user run");
 const nudge = sentMessages[sentMessages.length - 1];
 assert.ok(nudge.msg.content.includes("Automated capture turn"));
+assert.ok(nudge.msg.content.includes("at most one learn call"), "nudge states the call caps");
 assert.equal(nudge.msg.display, false);
 assert.deepEqual(nudge.opts, { triggerTurn: true, deliverAs: "followUp" });
-assert.deepEqual(setActiveCalls[setActiveCalls.length - 1], ["learn", "manage_skill"]);
+// restriction happens at capture-run start, not at settle time — the old design
+// restored the set at agent_end before the queued nudge turn ever started
+assert.deepEqual(activeTools, ALL_TOOLS, "tools not yet restricted at settle");
 
-fire("agent_end", { messages: [] });
-assert.deepEqual(activeTools, ["read", "bash", "edit", "write", "learn", "manage_skill"], "tools restored");
-fire("agent_settled", {}, tui);
-assert.equal(nudgeCount(), 1, "capture settle does not re-trigger");
+// non-user runs (subagent wakes, queued sendMessage turns) never nudge — even above threshold
+startCustomRun("subagent_wake");
+for (let i = 0; i < 9; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 1, "custom-run settle never nudges");
+endRun();
+
+// capture tools never count toward the threshold
+startUserRun();
+for (let i = 0; i < 9; i++) toolEnd("learn");
+toolEnd("manage_skill");
+settle();
+assert.equal(nudgeCount(), 1, "capture tools excluded from counter");
+endRun();
+
+// aborted user run: no nudge (abort read from AgentSettledEvent.aborted)
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle(true);
+assert.equal(nudgeCount(), 1, "aborted: no nudge");
+endRun();
 
 // print mode: no auto-capture
-for (let i = 0; i < 5; i++) fire("tool_execution_end");
-fire("agent_settled", {}, { mode: "print", cwd: "/tmp/fake-project" });
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+fire("agent_settled", { type: "agent_settled", aborted: false }, { mode: "print", cwd: "/tmp/fake-project" });
 assert.equal(nudgeCount(), 1, "print mode: no nudge");
-
-// aborted run: no capture
-fire("message_end", { message: { role: "assistant", stopReason: "aborted" } });
-for (let i = 0; i < 5; i++) fire("tool_execution_end");
-fire("agent_settled", {}, tui);
-assert.equal(nudgeCount(), 1, "aborted: no nudge");
+endRun();
 
 // disabled via live config re-check
 fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: false, minToolCalls: 5 }));
-for (let i = 0; i < 5; i++) fire("tool_execution_end");
-fire("agent_settled", {}, tui);
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
 assert.equal(nudgeCount(), 1, "autoContinue=false: no nudge");
+endRun();
 fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: true, minToolCalls: 5 }));
 
-// user input resets the counter
-for (let i = 0; i < 3; i++) fire("tool_execution_end");
-fire("input", { text: "hello", source: "interactive" });
-for (let i = 0; i < 3; i++) fire("tool_execution_end");
-fire("agent_settled", {}, tui);
-assert.equal(nudgeCount(), 1, "input resets counter: 3+3 < 5 each");
+// per-run reset at before_agent_start (replaces the old input-only reset)
+startUserRun();
+for (let i = 0; i < 3; i++) toolEnd("bash");
+startUserRun();
+for (let i = 0; i < 3; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 1, "run start resets counter: 3+3 < 5 each");
+endRun();
+
+// --- 4b. capture-run lifecycle: restriction, budget, no re-nudge, restore ---
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 2, "nudge queued for capture");
+endRun();
+
+startCaptureRun();
+assert.deepEqual(setActiveCalls[setActiveCalls.length - 1], ["learn", "manage_skill"], "tools restricted at capture-run start");
+
+const c1 = await runLearn({ memory: "capture lesson one" });
+assert.match(c1.content[0].text, /recorded|deduplicated/);
+const c2 = await runLearn({ memory: "capture lesson two" });
+assert.match(c2.content[0].text, /recorded|deduplicated/);
+// third capture call in the same capture run is budget-blocked (success-shaped, no write)
+const c3 = await runLearn({ memory: "capture lesson three" });
+assert.match(c3.content[0].text, /Capture budget exhausted/);
+assert.ok(!fs.readFileSync(learnedFile, "utf8").includes("capture lesson three"), "no write past budget");
+const c4 = await runManage({ action: "create", name: "budget-skill", description: "d", body: "b" });
+assert.match(c4.content[0].text, /Capture budget exhausted/);
+assert.ok(!fs.existsSync(path.join(process.env.PI_AUTOLEARN_SKILLS_DIR!, "budget-skill")), "no skill minted past budget");
+
+// capture-run settle never re-nudges, even above threshold
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 2, "capture settle does not re-trigger");
+
+endRun();
+assert.deepEqual(activeTools, ALL_TOOLS, "tools restored after capture run");
+
+// budget applies only to capture runs — normal turns are unlimited
+const n1 = await runLearn({ memory: "normal turn lesson one" });
+assert.match(n1.content[0].text, /recorded|deduplicated/);
+const n2 = await runLearn({ memory: "normal turn lesson two" });
+assert.match(n2.content[0].text, /recorded|deduplicated/);
+const n3 = await runLearn({ memory: "normal turn lesson three" });
+assert.match(n3.content[0].text, /recorded|deduplicated/);
+
+// --- 4c. meta-lesson rejection + content dedupe across contexts ---
+await assert.rejects(() => runLearn({ memory: "No further lessons this turn." }), /capture process itself/);
+await assert.rejects(() => runLearn({ memory: "Terminating self-capture loop definitively." }), /capture process itself/);
+await assert.rejects(() => runLearn({ memory: "TERMINAL NOTE - no further capture calls this session" }), /capture process itself/);
+await runLearn({ memory: "dup content lesson", context: "ctx A" });
+const dupCtx = await runLearn({ memory: "dup content lesson", context: "ctx B" });
+assert.match(dupCtx.content[0].text, /deduplicated/);
 
 // --- 5. before_agent_start memory injection ---
 const emptyCtx = { mode: "tui" as const, cwd: "/tmp/other-project" };
