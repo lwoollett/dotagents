@@ -210,7 +210,7 @@ for (let i = 0; i < 5; i++) toolEnd("bash");
 settle();
 assert.equal(nudgeCount(), 1, "autoContinue=false: no nudge");
 endRun();
-fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: true, minToolCalls: 5 }));
+fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: true, minToolCalls: 5, captureCooldownMin: 0, maxCapturesPerSession: 99 }));
 
 // per-run reset at before_agent_start (replaces the old input-only reset)
 startUserRun();
@@ -258,6 +258,106 @@ const n2 = await runLearn({ memory: "normal turn lesson two" });
 assert.match(n2.content[0].text, /recorded|deduplicated/);
 const n3 = await runLearn({ memory: "normal turn lesson three" });
 assert.match(n3.content[0].text, /recorded|deduplicated/);
+
+// --- 4d. rate limiting: cooldown + per-session capture cap (2026-11-04) ---
+// nudgeCount is 2 here (capturesThisSession === 2, cooldown disabled in config)
+assert.equal(nudgeCount(), 2);
+// cooldown blocks the next nudge entirely
+fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: true, minToolCalls: 5, captureCooldownMin: 60000, maxCapturesPerSession: 99 }));
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 2, "cooldown: no nudge");
+endRun();
+// cooldown lifted → nudge fires
+fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: true, minToolCalls: 5, captureCooldownMin: 0, maxCapturesPerSession: 99 }));
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 3, "cooldown lifted: nudge fires");
+endRun();
+// per-session cap (3 so far) blocks the 4th regardless of cooldown
+fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: true, minToolCalls: 5, captureCooldownMin: 0, maxCapturesPerSession: 3 }));
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 3, "session cap: no nudge");
+endRun();
+fs.writeFileSync(process.env.PI_AUTOLEARN_CONFIG!, JSON.stringify({ enabled: true, autoContinue: true, minToolCalls: 5, captureCooldownMin: 0, maxCapturesPerSession: 99 }));
+
+// --- 4e. capture-mode guards: delete refused, per-skill write cap (2026-11-04) ---
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+assert.equal(nudgeCount(), 4, "nudge for guard tests");
+endRun();
+startCaptureRun();
+// capture turns never delete (refused BEFORE budget — does not consume a slot)
+const delRefused = await runManage({ action: "delete", name: "test-skill" });
+assert.match(delRefused.content[0].text, /Refused: automated capture turns never delete skills/);
+// delete refusal consumed no budget: one learn + one create still fit the budget of 2
+assert.match((await runLearn({ memory: "guard capture lesson" })).content[0].text, /recorded|deduplicated/);
+const guardCreate = await runManage({ action: "create", name: "cap-write", description: "d", body: "# v1\n" });
+assert.match(guardCreate.content[0].text, /created/);
+// budget slot 2 used → next call blocked
+const budgetAgain = await runManage({ action: "update", name: "cap-write", description: "d", body: "# v2\n" });
+assert.match(budgetAgain.content[0].text, /Capture budget exhausted/);
+endRun();
+assert.deepEqual(activeTools, ALL_TOOLS, "tools restored after guard capture run");
+// second capture run: one more write to cap-write passes (2nd of 2 allowed)
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+endRun();
+startCaptureRun();
+const guardUpdate = await runManage({ action: "update", name: "cap-write", description: "d", body: "# v2\n" });
+assert.match(guardUpdate.content[0].text, /updated/);
+endRun();
+// third capture run: the per-skill session cap (2) refuses further cap-write writes
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+endRun();
+startCaptureRun();
+const guardCapped = await runManage({ action: "update", name: "cap-write", description: "d", body: "# v3\n" });
+assert.match(guardCapped.content[0].text, /already been written 2× by automated capture turns/);
+assert.ok(fs.readFileSync(path.join(process.env.PI_AUTOLEARN_SKILLS_DIR!, "cap-write", "SKILL.md"), "utf8").includes("# v2"), "capped write did not touch the file");
+// per-skill cap is capture-only: a normal turn writes cap-write freely
+endRun();
+const freeWrite = await runManage({ action: "update", name: "cap-write", description: "d", body: "# v3\n" });
+assert.match(freeWrite.content[0].text, /updated/);
+
+// --- 4f. interactive input cancels a live capture run (erewhon 2026-11-04) ---
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+endRun();
+startCaptureRun();
+assert.deepEqual(setActiveCalls[setActiveCalls.length - 1], ["learn", "manage_skill"], "restricted before input");
+fire("input", { type: "input", text: "modernise the admin please", source: "interactive", streamingBehavior: "steer" });
+assert.deepEqual(activeTools, ALL_TOOLS, "interactive input restores the full toolset mid-capture");
+const cancelNote = sentMessages.find((s) => s.msg.customType === "autolearn-capture-cancelled");
+assert.ok(cancelNote, "cancellation steer note sent");
+assert.equal(cancelNote!.opts!.deliverAs, "steer");
+// capture mode is fully off: budget no longer applies
+const free1 = await runLearn({ memory: "post-cancel lesson one" });
+const free2 = await runLearn({ memory: "post-cancel lesson two" });
+const free3 = await runLearn({ memory: "post-cancel lesson three" });
+for (const r of [free1, free2, free3]) assert.match(r.content[0].text, /recorded|deduplicated/);
+endRun();
+// non-interactive input (e.g. extension-originated) must NOT cancel capture mode
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+endRun();
+startCaptureRun();
+fire("input", { type: "input", text: "internal", source: "extension" });
+assert.deepEqual(activeTools, ["learn", "manage_skill"], "extension input does not cancel capture");
+assert.match((await runLearn({ memory: "still capturing lesson" })).content[0].text, /recorded|deduplicated/);
+assert.match((await runLearn({ memory: "still capturing lesson two" })).content[0].text, /recorded|deduplicated/);
+assert.match((await runLearn({ memory: "still capturing lesson three" })).content[0].text, /Capture budget exhausted/);
+endRun();
+assert.deepEqual(activeTools, ALL_TOOLS, "tools restored after non-cancelled capture run");
 
 // --- 4c. meta-lesson rejection + content dedupe across contexts ---
 await assert.rejects(() => runLearn({ memory: "No further lessons this turn." }), /capture process itself/);

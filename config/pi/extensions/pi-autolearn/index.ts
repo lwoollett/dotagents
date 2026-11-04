@@ -21,6 +21,19 @@
  *   - learn/manage_skill executions never count toward minToolCalls (capture activity
  *     must not re-arm the capture threshold) and are capped per capture run.
  *
+ * Loop hardening round 2 (2026-11-04 postmortem — erewhon / jom / PrivateAI):
+ *   - interactive input during a live capture run cancels capture mode: the full
+ *     toolset is restored immediately and a steer note tells the model to serve the
+ *     user. Before this, a user message typed mid-capture steered the restricted run:
+ *     the model answered a redesign request with only learn/manage_skill available and
+ *     fumbled junk `delete` calls until the user manually intervened (erewhon);
+ *   - nudges are rate-limited (cooldown + per-session cap): previously EVERY user run
+ *     with ≥ minToolCalls re-nudged, so long interactive sessions rewrote the same
+ *     skill nearly every turn (jom: jom-mor-extension-pass ×9 + a cross-project
+ *     vision-verify update; PrivateAI: askj-ado-prs every turn);
+ *   - capture-mode writes per skill name are capped per session, and capture turns can
+ *     never delete skills — delete junk is pure loop exhaust, never captured knowledge.
+ *
  * Deliberately absent: SQLite-backed consolidation pipeline (pi-vcc covers pi memory),
  * mnemopi/hindsight backends, authored-skill shadow refusal (single shared skills dir).
  *
@@ -44,6 +57,7 @@ const MAX_CONTEXT_CHARS = 400;
 const MAX_MEMORY_PROMPT_CHARS = 12_000;
 const MAX_PROMPT_LESSONS = 30;
 const CAPTURE_BUDGET = 2;
+const MAX_CAPTURE_WRITES_PER_SKILL = 2;
 
 const CONFIG_PATH =
   process.env.PI_AUTOLEARN_CONFIG ?? path.join(os.homedir(), ".pi", "agent", "autolearn.json");
@@ -58,6 +72,8 @@ const NUDGE = [
   "If it revealed a repeatable procedure worth codifying, call manage_skill (create or update).",
   "If it revealed a durable fact worth remembering, call learn.",
   "Hard limits: at most one learn call and one manage_skill call in total, and never a lesson about the capture process itself.",
+  "Never delete skills in this automated turn.",
+  "If a user message arrives during this turn, stop capturing and help the user instead.",
   "If nothing is worth keeping, do nothing — capture sparingly.",
   "Then stop: no questions, no further work.",
 ].join(" ");
@@ -68,12 +84,16 @@ interface AutolearnConfig {
   enabled: boolean;
   autoContinue: boolean;
   minToolCalls: number;
+  captureCooldownMin: number;
+  maxCapturesPerSession: number;
 }
 
 const DEFAULT_CONFIG: AutolearnConfig = {
   enabled: true,
   autoContinue: true,
   minToolCalls: 5,
+  captureCooldownMin: 30,
+  maxCapturesPerSession: 3,
 };
 
 function loadConfig(): AutolearnConfig {
@@ -84,6 +104,8 @@ function loadConfig(): AutolearnConfig {
       enabled: parsed.enabled ?? DEFAULT_CONFIG.enabled,
       autoContinue: parsed.autoContinue ?? DEFAULT_CONFIG.autoContinue,
       minToolCalls: Math.max(1, Number(parsed.minToolCalls) || DEFAULT_CONFIG.minToolCalls),
+      captureCooldownMin: Math.max(0, Number(parsed.captureCooldownMin) || 0),
+      maxCapturesPerSession: Math.max(1, Number(parsed.maxCapturesPerSession) || 1),
     };
   } catch {
     return { ...DEFAULT_CONFIG };
@@ -283,6 +305,10 @@ export default function piAutolearn(pi: ExtensionAPI): void {
   let captureCallsThisRun = 0;
   let toolCallCount = 0;
   let savedTools: string[] | null = null;
+  // rate limiting (2026-11-04): nudge storms in long interactive sessions
+  let lastNudgeAt = 0;
+  let capturesThisSession = 0;
+  const captureWritesBySkill = new Map<string, number>();
 
   /** During a capture run: allow up to CAPTURE_BUDGET executions, then return the
    *  stop instruction. Success-shaped on purpose — error results invite retries. */
@@ -295,6 +321,35 @@ export default function piAutolearn(pi: ExtensionAPI): void {
     return (
       `Capture budget exhausted (${CAPTURE_BUDGET} learn/manage_skill calls this automated capture turn). ` +
       "Do not call learn or manage_skill again. Reply with a one-line summary (or nothing) and stop."
+    );
+  };
+
+  /** Capture turns never delete skills — delete junk is pure loop exhaust (erewhon
+   *  2026-11-04: junk-name deletes of nonexistent skills while tool-starved). Does not
+   *  consume capture budget. */
+  const captureDeleteRefusal = (action: string): string | null => {
+    if (!capturing || action !== "delete") return null;
+    return (
+      "Refused: automated capture turns never delete skills. Deletion is not knowledge " +
+      "capture — do not retry; finish the capture or stop."
+    );
+  };
+
+  /** Per-session cap on capture-mode writes to the same skill name: consecutive
+   *  captures rewriting one skill every turn is the loop signature (jom 2026-11-04:
+   *  jom-mor-extension-pass rewritten 9× in a single session). User-driven
+   *  (non-capture) manage_skill calls are intentional and never throttled. */
+  const captureSkillWriteGuard = (name: string): string | null => {
+    if (!capturing) return null;
+    const n = sanitizeSkillName(name);
+    const used = captureWritesBySkill.get(n) ?? 0;
+    if (used < MAX_CAPTURE_WRITES_PER_SKILL) {
+      captureWritesBySkill.set(n, used + 1);
+      return null;
+    }
+    return (
+      `Skill '${n}' has already been written ${used}× by automated capture turns this session — ` +
+      "accumulate materially more experience before the next update; skip this write and stop."
     );
   };
 
@@ -358,6 +413,18 @@ export default function piAutolearn(pi: ExtensionAPI): void {
 
       let skillMsg = "";
       if (params.skill) {
+        const writeCapped = captureSkillWriteGuard(params.skill.name);
+        if (writeCapped) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Lesson stored (${stored}), but skill ${params.skill.action} skipped: ${writeCapped}`,
+              },
+            ],
+            details: { stored: true, captureSkillWriteCapped: true },
+          };
+        }
         try {
           skillMsg =
             "\n" +
@@ -417,16 +484,30 @@ export default function piAutolearn(pi: ExtensionAPI): void {
       ),
     }),
     async execute(_toolCallId, params) {
+      const refused = captureDeleteRefusal(params.action);
+      if (refused)
+        return {
+          content: [{ type: "text", text: refused }],
+          details: { captureDeleteRefused: true, captureBudgetExhausted: false, captureSkillWriteCapped: false, action: params.action, name: params.name },
+        };
       const capped = captureBudgetGuard();
       if (capped)
         return {
           content: [{ type: "text", text: capped }],
-          details: { captureBudgetExhausted: true, action: params.action, name: params.name },
+          details: { captureDeleteRefused: false, captureBudgetExhausted: true, captureSkillWriteCapped: false, action: params.action, name: params.name },
         };
       if (params.action !== "delete" && (!params.description || !params.body)) {
         throw new Error(
           'used with both "description" and "body" for "create" and "update"',
         );
+      }
+      if (params.action !== "delete") {
+        const writeCapped = captureSkillWriteGuard(params.name);
+        if (writeCapped)
+          return {
+            content: [{ type: "text", text: writeCapped }],
+            details: { captureDeleteRefused: false, captureBudgetExhausted: false, captureSkillWriteCapped: true, action: params.action, name: params.name },
+          };
       }
       const msg =
         params.action === "delete"
@@ -434,7 +515,7 @@ export default function piAutolearn(pi: ExtensionAPI): void {
           : writeSkillFile(params.name, params.description!, params.body!, params.action as "create" | "update");
       return {
         content: [{ type: "text", text: msg }],
-        details: { captureBudgetExhausted: false, action: params.action, name: params.name },
+        details: { captureDeleteRefused: false, captureBudgetExhausted: false, captureSkillWriteCapped: false, action: params.action, name: params.name },
       };
     },
   });
@@ -459,6 +540,30 @@ export default function piAutolearn(pi: ExtensionAPI): void {
   });
 
   // -- auto-capture controller --
+  pi.on("input", (event) => {
+    // A user typing while the capture run is live (delivered as steer/followUp into
+    // that run) must cancel capture mode: the run is tool-restricted, so answering
+    // the user with only learn/manage_skill produces junk calls (erewhon 2026-11-04).
+    // Only interactive input cancels — extension/rpc input (e.g. our own nudge) must not.
+    if (!capturing || event.source !== "interactive") return;
+    capturing = false;
+    captureCallsThisRun = 0;
+    if (savedTools) {
+      pi.setActiveTools(savedTools);
+      savedTools = null;
+    }
+    pi.sendMessage(
+      {
+        customType: "autolearn-capture-cancelled",
+        content:
+          "Automated capture cancelled by user input — capture mode is off and the full " +
+          "toolset is restored. Serve the user's request now; do not resume capturing this turn.",
+        display: false,
+      },
+      { deliverAs: "steer" },
+    );
+  });
+
   pi.on("tool_execution_end", (event) => {
     // capture tools never count toward minToolCalls — capture must not re-arm itself
     if (event.toolName === "learn" || event.toolName === "manage_skill") return;
@@ -474,6 +579,14 @@ export default function piAutolearn(pi: ExtensionAPI): void {
     if (!cfg.enabled || !cfg.autoContinue) return;
     if (ctx.mode !== "tui") return; // interactive sessions only
     if (toolCallCount < cfg.minToolCalls) return;
+
+    // rate limits (2026-11-04): without them every ≥minToolCalls user run nudged,
+    // and long interactive sessions rewrote the same skill nearly every turn
+    const now = Date.now();
+    if (now - lastNudgeAt < cfg.captureCooldownMin * 60_000) return;
+    if (capturesThisSession >= cfg.maxCapturesPerSession) return;
+    lastNudgeAt = now;
+    capturesThisSession++;
 
     pi.sendMessage(
       { customType: "autolearn-nudge", content: NUDGE, display: false },

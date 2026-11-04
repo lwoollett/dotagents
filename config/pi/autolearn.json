@@ -1,5 +1,7 @@
 {
   "enabled": true,
   "autoContinue": true,
-  "minToolCalls": 5
+  "minToolCalls": 5,
+  "captureCooldownMin": 30,
+  "maxCapturesPerSession": 3
 }
