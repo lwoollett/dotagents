@@ -359,10 +359,27 @@ assert.match((await runLearn({ memory: "still capturing lesson three" })).conten
 endRun();
 assert.deepEqual(activeTools, ALL_TOOLS, "tools restored after non-cancelled capture run");
 
-// --- 4c. meta-lesson rejection + content dedupe across contexts ---
+// --- 4c. meta-lesson rejection is capture-only + content dedupe across contexts ---
+// capture turns reject loop-exhaust meta-lessons (budget allows 2 per run)
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+endRun();
+startCaptureRun();
 await assert.rejects(() => runLearn({ memory: "No further lessons this turn." }), /capture process itself/);
 await assert.rejects(() => runLearn({ memory: "Terminating self-capture loop definitively." }), /capture process itself/);
+endRun();
+startUserRun();
+for (let i = 0; i < 5; i++) toolEnd("bash");
+settle();
+endRun();
+startCaptureRun();
 await assert.rejects(() => runLearn({ memory: "TERMINAL NOTE - no further capture calls this session" }), /capture process itself/);
+endRun();
+// user-driven turns MAY record lessons about the capture process itself —
+// postmortem lessons are deliberate work, not loop exhaust (2026-11-04 regression fix)
+const metaOk = await runLearn({ memory: "capture-loop root cause: typed input steers live capture runs" });
+assert.match(metaOk.content[0].text, /recorded|deduplicated/);
 await runLearn({ memory: "dup content lesson", context: "ctx A" });
 const dupCtx = await runLearn({ memory: "dup content lesson", context: "ctx B" });
 assert.match(dupCtx.content[0].text, /deduplicated/);

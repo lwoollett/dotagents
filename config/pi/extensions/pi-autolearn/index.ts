@@ -400,7 +400,9 @@ export default function piAutolearn(pi: ExtensionAPI): void {
         };
       const content = sanitizeText(params.memory).slice(0, MAX_LESSON_CHARS);
       if (!content) throw new Error("lesson empty after sanitization");
-      if (isCaptureMetaLesson(content))
+      // meta-lesson filter is capture-only: during capture spirals these are loop
+      // exhaust, but a user-driven turn may legitimately record autolearn lessons
+      if (capturing && isCaptureMetaLesson(content))
         throw new Error(
           "rejected: this lesson is about the capture process itself, not the work — " +
             "capture lessons describe the work; if capture is misbehaving, say so in chat instead",
