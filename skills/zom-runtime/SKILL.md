@@ -14,8 +14,8 @@ so a path dependency just works). For extending the runtime itself
 
 ## Runtime facts
 
-- Version: `build.zig.zon` `.version` field (0.3.1 as of the DealerApp
-  port). Commands: `zig build test`, `zig build -Doptimize=ReleaseSafe
+- Version: read `build.zig.zon`'s `.version` field (0.3.1 at time of
+  writing). Commands: `zig build test`, `zig build -Doptimize=ReleaseSafe
   test`, `zig build run` (embedded demo), `zig build bench`.
 - Key exports from `src/root.zig`: `Database`, `Session`,
   `Transaction`, `Mode`, `Ref`, `Oid`, `SetRef`/`DictRef`/`SeqRef`,
