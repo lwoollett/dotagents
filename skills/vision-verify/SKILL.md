@@ -1,6 +1,11 @@
 ---
 name: "vision-verify"
-description: "Verify any image, screenshot, video frame, or media the session can't see or shouldn't judge unread — game frames, app UI, web screenshots, CAD viewport renders, photos of hardware, generated images, tile/sprite sheets. Delegate to a vision-capable subagent when the session model can't see images; iterate until CONFIRMED."
+description: "Verify any image, screenshot, video frame, or media the session can't see or shouldn't judge unread — game frames, app UI, web screenshots, CAD viewport renders, photos of hardware, generated images, tile/sprite sheets. Delegate to a vision-capable subagent when the session model can't see images; iterate until CONFIRMED. Geometry-only findings close deterministically (DOM/pixel measurement) instead of another vision round."
+---
+
+---
+name: "vision-verify"
+description: Verify any image, screenshot, video frame, or media the session can't see or shouldn't judge unread — game frames, app UI, web screenshots, CAD viewport renders, photos of hardware, generated images, tile/sprite sheets. Delegate to a vision-capable subagent when the session model can't see images; iterate until CONFIRMED.
 ---
 
 # Vision-verify screenshots & media
@@ -21,6 +26,7 @@ Never declare a visual/UI/scene/rendering change done — or answer a question *
 - **ONE subagent call per turn** — parallel calls are rejected ("a subagent call is already in progress"); fan out across sequential turns.
 - Task must include: expected contents (exact strings, colors, positions), a wrongness checklist, and demands for measured pixel values on geometry checks. The `visual` agent's report shape (verdict / text extracted / observations / issues / recommended fix) fits this — write the checklist to fill it.
 - **Act on findings, re-run until CONFIRMED.** Vision feedback often names the ROOT CAUSE ("openings are uniform rectangles" on CAD walls revealed a vertical-prism-cut limitation and collinear-seed bisectors) — treat descriptions as diagnostics, not just pass/fail. Distinguish STRUCTURE defects (fix and re-run) from taste parameters (density/size) — the latter go to the user with renders copied to ~/Desktop.
+- **Geometry-only fixes don't need another vision round** — if the finding is purely measurable (overlap, crowding, overflow, size), close the loop deterministically instead: in a browser, `playwright-cli run-code` with `getBoundingClientRect()` on the two elements (overlap = intervals intersect on BOTH axes) plus `document.documentElement.scrollWidth > window.innerWidth` for overflow; for canvas/pixel work use the programmatic analysis paths in §D. Re-run vision only for appearance/semantics. (Verified: mobile-masthead-crowding fix confirmed this way, zom auction board 2026-11.)
 
 ## Media-reading limits (cross-cutting)
 
@@ -56,6 +62,8 @@ See the canonical `fusion360-mcp-cad-builds` skill, item 11a — viewport render
 
 Capture with the `screenshots` skill (playwright-cli: viewport/element/full-page/responsive sweeps) and **attach the image inline** to the reply — a UI change without a screenshot is an incomplete answer. Delegate the READ (per the protocol above) only when the session model can't see it. For visual regression across builds, use Playwright's `expect(locator).toHaveScreenshot()` baselines instead of ad-hoc comparison.
 
+**Stale-artifact check before capturing:** when smoke-testing a server UI, a previous test server may still own the port while every new `serve` invocation silently fails to bind (bind errors land on stderr — don't redirect it to /dev/null during smoke tests). The screenshots then validate the OLD build and it looks like your changes did nothing. Before capturing: `pgrep -fl <binary>` / `lsof -nP -iTCP:<port> -sTCP:LISTEN`, kill strays, start ONE fresh server with stderr visible, and curl a marker distinctive to the NEW build (new CSS token, renamed heading) before trusting any capture. A vision read that describes the pre-change design verbatim is the stale-artifact tell. Serve live boards with `Cache-Control: no-store` so browser heuristic caching can't resurrect a stale page either.
+
 ### D. Asset sheets (tiles/sprites you cannot see)
 
 - Programmatic analysis FIRST (PIL): sizes, alpha, dominant colors, edge-band extents, arm centerlines.
@@ -78,4 +86,4 @@ Capture with the `screenshots` skill (playwright-cli: viewport/element/full-page
 
 ### G. Live-webcam scenes (macOS TCC)
 
-macOS TCC can leave CameraServer feeds enumerated-but-inactive; verification of camera viewfinders may need the user to click Allow once (`tccutil reset Camera <bundle-id>` re-arms the prompt). Code must fall back gracefully to a no-camera state and THAT state must be vision-verified in the meantime.
+Not yet encountered — no procedure recorded. When it comes up: `screencapture` from the shell fails without Screen Recording permission; use an in-browser source or `imagesnap`, and expect HEIC conversions.
