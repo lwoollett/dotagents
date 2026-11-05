@@ -1,16 +1,9 @@
 ---
 name: "jade-to-zom"
-description: "Port a JADE/Orb example app (JADE-Orb-Examples .scm schema + Orb templates) to a single-binary Zig app on zom at ~/repos/zom — schema mapping table, Orb route/template/session conversion, JADE quirk checklist, verification bar"
+description: "Port a JADE/ app to a single-binary Zig app on zom at ~/repos/zom — schema mapping table, Orb route/template/session conversion, JADE quirk checklist, verification bar"
 ---
 
 # Converting a JADE/Orb example app to zom
-
-Port apps from https://github.com/jadesoftwarenz/JADE-Orb-Examples
-(JADE `.scm` schema + Orb HTML templates) to single-binary Zig apps on
-zom (`~/repos/zom`). Reference implementation: DealerApp →
-`~/repos/zomorbdemo/dealer-app` (zom 0.3.1, Zig 0.17, 13 tests, full
-game cycle smoke-verified). Remaining examples: JVSummitApp,
-JadeStudio, AnyList.
 
 ## Procedure
 
