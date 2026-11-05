@@ -1,0 +1,8 @@
+{
+  "globalConcurrencyLimit": 50,
+  "maxSubagentSpawnsPerRun": 128,
+  "parallel": {
+    "maxTasks": 50,
+    "concurrency": 50
+  }
+}
